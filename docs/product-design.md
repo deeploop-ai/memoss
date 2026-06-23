@@ -429,12 +429,32 @@ We evaluated two approaches for the agent engine:
 
 ### 6.3 Package Structure (Nx Monorepo)
 
+- `apps/` — 可部署应用（CLI 入口、Web UI、Desktop 壳）
+- `packages/` — 可复用库（核心引擎、MCP 服务端等）
+
 ```
 memoss/
 ├── nx.json
 ├── pnpm-workspace.yaml
 ├── tsconfig.base.json
 ├── package.json                  # root workspace
+│
+├── apps/
+│   ├── cli/                      # @memoss/cli (Phase 1) ✅ created
+│   │   ├── src/
+│   │   │   ├── commands/        # init, ingest, query, lint, status, view, serve
+│   │   │   └── main.ts
+│   │   ├── package.json
+│   │   ├── tsconfig.json
+│   │   └── project.json
+│   │
+│   ├── web/                      # @memoss/web (Phase 2)
+│   │   │                         # Next.js App — Desktop renderer + future hosted platform
+│   │   └── ...
+│   │
+│   └── desktop/                  # @memoss/desktop (Phase 2)
+│       │                         # Electron wrapper: main process runs core, renderer runs web
+│       └── ...
 │
 ├── packages/
 │   ├── core/                     # @memoss/core (Phase 1)
@@ -449,29 +469,13 @@ memoss/
 │   │   ├── tsconfig.json
 │   │   └── project.json         # Nx project config
 │   │
-│   ├── cli/                      # @memoss/cli (Phase 1)
-│   │   ├── src/
-│   │   │   ├── commands/        # init, ingest, query, lint, status, view, serve
-│   │   │   └── main.ts
-│   │   ├── package.json
-│   │   ├── tsconfig.json
-│   │   └── project.json
-│   │
-│   ├── mcp/                      # @memoss/mcp-server (Phase 1)
-│   │   ├── src/
-│   │   │   ├── server.ts        # MCP server exposing core tools
-│   │   │   └── index.ts
-│   │   ├── package.json
-│   │   ├── tsconfig.json
-│   │   └── project.json
-│   │
-│   ├── web/                      # @memoss/web (Phase 2)
-│   │   │                         # Next.js App — Desktop renderer + future hosted platform
-│   │   └── ...
-│   │
-│   └── desktop/                  # @memoss/desktop (Phase 2)
-│       │                         # Electron wrapper: main process runs core, renderer runs web
-│       └── ...
+│   └── mcp/                      # @memoss/mcp-server (Phase 1)
+│       ├── src/
+│       │   ├── server.ts        # MCP server exposing core tools
+│       │   └── index.ts
+│       ├── package.json
+│       ├── tsconfig.json
+│       └── project.json
 │
 ├── docs/
 │   └── product-design.md
