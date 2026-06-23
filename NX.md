@@ -12,12 +12,12 @@ This repository demonstrates a production-ready TypeScript monorepo with:
 
 - **3 Publishable Packages** - Ready for NPM publishing
 
-  - `@org/strings` - String manipulation utilities
-  - `@org/async` - Async utility functions with retry logic
-  - `@org/colors` - Color conversion and manipulation utilities
+  - `@memoss/strings` - String manipulation utilities
+  - `@memoss/async` - Async utility functions with retry logic
+  - `@memoss/colors` - Color conversion and manipulation utilities
 
 - **1 Internal Library**
-  - `@org/utils` - Shared utilities (private, not published)
+  - `@memoss/utils` - Shared utilities (private, not published)
 
 ## 🚀 Quick Start
 
@@ -65,7 +65,7 @@ Enforces architectural constraints using tags. Each package has specific depende
 npx nx graph
 
 # View a specific project's details
-npx nx show project @org/strings --web
+npx nx show project @memoss/strings --web
 ```
 
 [Learn more about module boundaries →](https://nx.dev/features/enforce-module-boundaries)
@@ -76,10 +76,10 @@ Packages can define custom commands beyond standard build/test/lint:
 
 ```bash
 # Run the custom build-base command for strings package
-npx nx run @org/strings:build-base
+npx nx run @memoss/strings:build-base
 
 # See all available targets for a project
-npx nx show project @org/strings
+npx nx show project @memoss/strings
 ```
 
 [Learn more about custom run commands →](https://nx.dev/concepts/executors-and-configurations)
@@ -90,7 +90,7 @@ The CI pipeline includes `nx fix-ci` which automatically identifies and suggests
 
 ```bash
 # Run tests and see the failure
-npx nx run @org/async:test
+npx nx run @memoss/async:test
 
 # In CI, this command provides automated fixes
 npx nx fix-ci
@@ -110,7 +110,7 @@ npx nx release --dry-run
 npx nx release
 
 # Publish only specific packages
-npx nx release publish --projects=@org/strings,@org/colors
+npx nx release publish --projects=@memoss/strings,@memoss/colors
 ```
 
 [Learn more about Nx Release →](https://nx.dev/features/manage-releases)
@@ -134,10 +134,10 @@ This repository uses tags to enforce module boundaries:
 
 | Package        | Tag             | Can Import From        |
 | -------------- | --------------- | ---------------------- |
-| `@org/utils`   | `scope:shared`  | Nothing (base library) |
-| `@org/strings` | `scope:strings` | `scope:shared`         |
-| `@org/async`   | `scope:async`   | `scope:shared`         |
-| `@org/colors`  | `scope:colors`  | `scope:shared`         |
+| `@memoss/utils`   | `scope:shared`  | Nothing (base library) |
+| `@memoss/strings` | `scope:strings` | `scope:shared`         |
+| `@memoss/async`   | `scope:async`   | `scope:shared`         |
+| `@memoss/colors`  | `scope:colors`  | `scope:shared`         |
 
 The ESLint configuration enforces these boundaries, preventing circular dependencies and maintaining clean architecture.
 
@@ -145,8 +145,8 @@ The ESLint configuration enforces these boundaries, preventing circular dependen
 
 To see module boundary enforcement in action:
 
-1. Try importing `@org/colors` into `@org/strings`
-2. Run `npx nx run @org/strings:lint`
+1. Try importing `@memoss/colors` into `@memoss/strings`
+2. Run `npx nx run @memoss/strings:lint`
 3. You'll see an error about violating module boundaries
 
 ## 📚 Useful Commands
@@ -155,12 +155,12 @@ To see module boundary enforcement in action:
 # Project exploration
 npx nx graph                                    # Interactive dependency graph
 npx nx list                                     # List installed plugins
-npx nx show project @org/strings --web              # View project details
+npx nx show project @memoss/strings --web              # View project details
 
 # Development
-npx nx run @org/strings:build                           # Build a specific package
-npx nx run @org/async:test                              # Test a specific package
-npx nx run @org/colors:lint                             # Lint a specific package
+npx nx run @memoss/strings:build                           # Build a specific package
+npx nx run @memoss/async:test                              # Test a specific package
+npx nx run @memoss/colors:lint                             # Lint a specific package
 
 # Running multiple tasks
 npx nx run-many -t build                       # Build all projects
