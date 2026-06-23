@@ -3,7 +3,10 @@ export type ErrorCode =
   | 'OKF_VALIDATION_ERROR'
   | 'MISSING_API_KEY'
   | 'VAULT_NOT_FOUND'
-  | 'POLICY_VIOLATION';
+  | 'POLICY_VIOLATION'
+  | 'GIT_ERROR'
+  | 'FETCH_ERROR'
+  | 'SOURCE_ERROR';
 
 export class MemossError extends Error {
   constructor(

@@ -10,6 +10,23 @@ export {
   RESERVED_FILENAMES,
 } from './okf/paths.js';
 export { regenerateIndexes } from './okf/index-builder.js';
+export { FsKnowledgeStore } from './adapters/fs-store.js';
+export {
+  createDraftBranchName,
+  SimpleGitAdapter,
+} from './adapters/simple-git.js';
+export { fetchUrl, type FetchResult } from './adapters/fetch.js';
+export { createSourceAdapter } from './adapters/source-registry.js';
+export type {
+  CreateSourceAdapterInput,
+  GitAdapter,
+  GitCommit,
+  KnowledgeStore,
+  SourceAdapter,
+  SourceContent,
+  SourceItem,
+  SourceKind,
+} from './adapters/types.js';
 export {
   MemossError,
   OKFDocumentError,
