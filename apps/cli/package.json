@@ -2,5 +2,17 @@
   "name": "@memoss/cli",
   "version": "0.0.1",
   "private": true,
-  "dependencies": {}
+  "type": "module",
+  "bin": {
+    "memoss": "./dist/main.js"
+  },
+  "dependencies": {
+    "@memoss/core": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^8.0.0"
+  },
+  "nx": {
+    "tags": ["scope:cli", "type:app"]
+  }
 }
