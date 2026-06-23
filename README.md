@@ -2,16 +2,17 @@
 
 > **像苔藓一样自然生长的记忆。**
 >
-> *Your file system is your knowledge base. Agents do the reading, writing, maintenance, and cross-referencing.*
+> *Your file system is your knowledge base. Agents compile, maintain, and cross-reference it continuously.*
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Phase](https://img.shields.io/badge/phase-1-yellow.svg)](docs/phase-1-plan.md)
+[![Phase](https://img.shields.io/badge/phase-1a-yellow.svg)](docs/phase-1-plan.md)
+[![Design](https://img.shields.io/badge/design-v0.2-blue.svg)](docs/product-design.md)
 
 ---
 
 ## What is Memoss?
 
-Memoss is an **AI-native knowledge infrastructure** — a system where LLM agents continuously build and maintain a living knowledge base from your raw sources (documents, web pages, data schemas, code, conversations), stored as plain Markdown files on your file system.
+Memoss is an **agent-native knowledge runtime** — a system where LLM agents continuously build and maintain a living knowledge base from your raw sources (documents, web pages, data schemas, code, conversations), stored as plain Markdown files on your file system.
 
 Unlike traditional wikis where **humans do the bookkeeping** (and it goes stale), or RAG systems where knowledge is **re-derived from scratch** on every query — in Memoss, **agents do the maintenance**, and knowledge is **compiled once, kept current, and always ready**.
 
@@ -21,13 +22,28 @@ Unlike traditional wikis where **humans do the bookkeeping** (and it goes stale)
 You drop sources. Agents build knowledge. You ask questions. Agents keep it alive.
 ```
 
-- **Ingest** — Drop a URL, file, or repo. The agent reads it, extracts knowledge, updates every related page, and commits.
+**Phase 1 operations:**
+
+- **Ingest** — Drop a URL, file, or repo. The agent reads it, extracts knowledge, updates every related page, and commits (to a draft branch for your review).
 - **Query** — Ask a question. The agent searches the knowledge base, synthesizes an answer with citations, and can file the answer back as a new page.
-- **Lint** — The agent proactively checks for contradictions, stale claims, orphan pages, and missing links. Knowledge stays healthy.
+- **Lint** — The agent checks for contradictions, stale claims, orphan pages, and missing links. Knowledge stays healthy.
+
+**Coming in Phase 2:** Enrich · Discover · Sync · Publish · Bridge (OKF ↔ enterprise catalog)
+
+### Dual-Track Knowledge
+
+Memoss serves two tracks that can be used independently or together:
+
+| Track | Format | Best for |
+|-------|--------|----------|
+| **Wiki** | [OKF](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) vault (Markdown + YAML frontmatter) | Personal research, team wikis, reading notes |
+| **Catalog** | Metadata-as-Code snapshot (`catalog.yaml` + entries) | Data asset documentation, enterprise catalog sync |
+
+The **Bridge** layer converts between them — compatible with [Google knowledge-catalog](https://github.com/GoogleCloudPlatform/knowledge-catalog) mdcode tooling.
 
 ### Why Markdown Files?
 
-Because **Markdown is the only format that is readable by humans, parseable by agents, and diffable in git** — all without tooling. Memoss uses the [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) (OKF) — Markdown + YAML frontmatter — as its knowledge representation. You can `cat` a file, `grep` a concept, `git diff` a change. No proprietary database. No lock-in.
+Because **Markdown is the only format that is readable by humans, parseable by agents, and diffable in git** — all without tooling. You can `cat` a file, `grep` a concept, `git diff` a change, and open the vault in **Obsidian** for graph view. No proprietary database. No lock-in.
 
 ---
 
@@ -37,14 +53,20 @@ Because **Markdown is the only format that is readable by humans, parseable by a
 # Install
 npm install -g memoss
 
-# Create a knowledge base
+# Create a knowledge base (from a schema pack: personal | research | data-catalog)
 memoss init ./my-knowledge
 
-# Ingest your first source
+# Ingest your first source (writes to draft branch)
 memoss ingest "https://example.com/article" --type web
+
+# Review and merge agent changes
+memoss approve
 
 # Ask a question
 memoss query "what does this article say about X?"
+
+# File the answer back into the knowledge base
+memoss query "compare X and Y" --save
 
 # Check knowledge base health
 memoss lint
@@ -59,29 +81,33 @@ memoss serve
 
 ```
 apps/
-└── cli/              @memoss/cli           CLI (init, ingest, query, lint, serve)
+└── cli/                    @memoss/cli     init · ingest · query · lint · approve · serve
 
 packages/
-├── core/             @memoss/core          OKF parser, agent engine, tool registry
-└── mcp/              @memoss/mcp-server     MCP server for external agent consumption
+├── core/                   @memoss/core    OKF · agents · tools · policies
+├── mcp/                    @memoss/mcp-server
+├── catalog-bridge/         @memoss/catalog-bridge   (Phase 2a — MaC sync)
+└── search/                 @memoss/search           (Phase 2b — hybrid retrieval)
+
+schema-packs/               personal · research · data-catalog templates
 ```
 
-Phase 2 adds `apps/web/` (Next.js UI) and `apps/desktop/` (Electron wrapper).
+Phase 2 adds `apps/web/` (Next.js UI) and `apps/desktop/` (Obsidian-compatible vault + agent chat).
 
 Built with:
 - **Agent Engine** — Vercel AI SDK (multi-provider, type-safe tool calling)
 - **Monorepo** — Nx + pnpm workspaces
-- **Format** — OKF (Markdown + YAML frontmatter)
+- **Formats** — OKF (wiki) + MaC (catalog)
 - **Language** — TypeScript
 
 ---
 
 ## Where This Comes From
 
-Memoss sits at the convergence of two independent designs that arrived at the same architecture:
+Memoss productizes the convergence of two independent designs:
 
-- **[Google knowledge-catalog](https://github.com/GoogleCloudPlatform/knowledge-catalog)** — OKF format spec, agent-driven metadata enrichment, MCP-first architecture, Metadata as Code. Built by Google's Dataplex team for enterprise data catalogs.
-- **[Karpathy's LLM Wiki Pattern](https://gist.githubusercontent.com/karpathy/442a6bf555914893e9891c11519de94f/raw/ac46de1ad27f92b28ac95459c782c07f6b8c964a/llm-wiki.md)** — Three-layer architecture (sources → wiki → schema), ingest/query/lint operations, "the LLM writes, you read it."
+- **[Google knowledge-catalog](https://github.com/GoogleCloudPlatform/knowledge-catalog)** — OKF format, Metadata-as-Code sync, enrichment/discovery agents, MCP-first architecture.
+- **[Karpathy's LLM Wiki Pattern](https://gist.githubusercontent.com/karpathy/442a6bf555914893e9891c11519de94f/raw/ac46de1ad27f92b28ac95459c782c07f6b8c964a/llm-wiki.md)** — Three-layer model (sources → wiki → schema), ingest/query/lint, interactive curation, Obsidian workflow.
 
 One enterprise, one personal. Same architecture. **The pattern is validated. The category is undefined.**
 
@@ -91,11 +117,13 @@ One enterprise, one personal. Same architecture. **The pattern is validated. The
 
 | Phase | Timeline | Focus |
 |-------|----------|-------|
-| **Phase 1** | 0–6 months | CLI + Core Engine. Open-source single-user validation. |
-| **Phase 2** | 6–18 months | Desktop app + team collaboration + connector ecosystem. |
-| **Phase 3** | 18+ months | Hosted platform + knowledge bundle marketplace + enterprise. |
+| **Phase 1a** | 0–4 months | CLI + core loop (ingest/query/lint), draft review, MCP, graph viewer |
+| **Phase 1b** | 4–6 months | Web crawl ingest, provenance, lint health score, examples |
+| **Phase 2a** | 6–12 months | Catalog bridge, enrich, sync, publish, data connectors |
+| **Phase 2b** | 12–18 months | Discover, Desktop app, hybrid search, team PR workflow |
+| **Phase 3** | 18+ months | Hosted platform, bundle marketplace, enterprise |
 
-Full details: [Product Design Document](docs/product-design.md) · [Phase 1 Plan](docs/phase-1-plan.md)
+Full details: [Product Design v0.2](docs/product-design.md) · [Phase 1 Plan](docs/phase-1-plan.md)
 
 ---
 
