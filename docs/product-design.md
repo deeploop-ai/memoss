@@ -12,10 +12,11 @@
 3. [Three-Layer Open Strategy](#3-three-layer-open-strategy)
 4. [Product Architecture](#4-product-architecture)
 5. [Core Operations Model](#5-core-operations-model)
-6. [Three-Phase Roadmap](#6-three-phase-roadmap)
-7. [Competitive Landscape](#7-competitive-landscape)
-8. [Business Model](#8-business-model)
-9. [Key Risks & Mitigations](#9-key-risks--mitigations)
+6. [Technical Architecture](#6-technical-architecture)
+7. [Three-Phase Roadmap](#7-three-phase-roadmap)
+8. [Competitive Landscape](#8-competitive-landscape)
+9. [Business Model](#9-business-model)
+10. [Key Risks & Mitigations](#10-key-risks--mitigations)
 
 ---
 
@@ -270,8 +271,8 @@ Multiple interfaces to access and interact with the knowledge base:
 1. **File system is the database.** No proprietary storage. Everything is markdown files. You can `cat`, `grep`, `git diff` your knowledge.
 2. **Agent writes, human curates.** The agent does the bookkeeping; the human provides judgment, direction, and verification.
 3. **Progressive disclosure.** Index files at every level let agents and humans navigate without loading everything into context.
-4. **Links are first-class.** The graph of cross-references is as important as individual documents.
-5. **Everything is a source.** Data schemas, web pages, code, conversations — all are raw material for knowledge extraction.
+4. **Links are first-class.** The graph of cross-references is as important as individual documents. Cross-links use **file-relative paths** (`../topics/other.md`) so they resolve correctly on GitHub, local filesystems, and any markdown renderer — not bundle-relative paths (`/topics/other.md`) which break outside of OKF-aware tooling.
+5. **Everything is a source.** Data schemas, web pages, code, conversations — all are raw material for knowledge extraction. Sources implement a common `SourceAdapter` interface, enabling community-contributed connectors.
 6. **MCP-first.** Every capability is exposed as an MCP tool. If you can't use it from an agent, it doesn't exist.
 
 ---
@@ -404,7 +405,7 @@ interactive graph visualization (viz.html)
 | **Agent Engine** | Vercel AI SDK (`ai` + `@ai-sdk/anthropic` + `@ai-sdk/openai`) | Multi-provider, type-safe tool calling, multi-step agent loop via `stopWhen`/`isStepCount` |
 | **Tool Schema** | Zod | Type-safe input validation, integrates natively with AI SDK |
 | **Markdown** | `marked` + `front-matter` | Parse OKF files (YAML frontmatter + Markdown body) |
-| **CLI Framework** | `citra` | Lightweight, TypeScript-native, git-style subcommands |
+| **CLI Framework** | `citty` | Lightweight, TypeScript-native, git-style subcommands |
 | **Git** | `simple-git` | Git operations from Node.js |
 | **MCP** | `@modelcontextprotocol/sdk` | MCP server implementation |
 | **Packages** | - | - |
@@ -601,27 +602,13 @@ Desktop is the primary user-facing product. CLI validates the core loop; Desktop
 
 ### Phase 3 (18 months+): Hosted Platform + Category Leadership
 
-**Goal:** Managed cloud service, knowledge bundle marketplace, enterprise features.
+**Goal:** Managed cloud service, knowledge bundle marketplace, enterprise features. Become the de facto standard for agent-native knowledge management.
 
 **Deliverables:**
 
 | Item | Description |
 |------|-------------|
 | **Hosted Platform** | Managed agents, cloud storage, web access from anywhere |
-| **Knowledge Bundle Market** | Community-shared OKF bundle templates |
-| **Enterprise Features** | SSO, RBAC, audit logs, SOC2/ISO, SLA |
-| **CI/CD Integration** | GitHub Actions for automated enrichment pipelines |
-| **Multi-System Sync** | Bi-directional sync with Alation, Atlan, Collibra, DataHub |
-| **SDK** | Python and TypeScript SDKs for embedding in custom applications |
-
-### Phase 3 (18 months+): Ecosystem + Category Leadership
-
-**Goal:** Become the de facto standard for agent-native knowledge management.
-
-**Deliverables:**
-
-| Item | Description |
-|------|-------------|
 | **Knowledge Bundle Market** | Community-shared OKF bundle templates (e.g., "SaaS Metrics Bundle", "GA4 Bundle") |
 | **Enterprise Features** | SSO, RBAC, audit logs, SOC2/ISO compliance, SLA |
 | **CI/CD Integration** | GitHub Actions, GitLab CI for automated enrichment pipelines |
@@ -701,7 +688,7 @@ Desktop is the primary user-facing product. CLI validates the core loop; Desktop
 
 ---
 
-## 9. Key Risks & Mitigations
+## 10. Key Risks & Mitigations
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|

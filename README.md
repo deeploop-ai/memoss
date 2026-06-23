@@ -27,7 +27,7 @@ You drop sources. Agents build knowledge. You ask questions. Agents keep it aliv
 
 ### Why Markdown Files?
 
-Because **Markdown is the only format that is readable by humans, parseable by agents, and diffable in git** — all without tooling. Memoss uses the [Open Knowledge Format](docs/okf-spec.md) (OKF) — Markdown + YAML frontmatter — as its knowledge representation. You can `cat` a file, `grep` a concept, `git diff` a change. No proprietary database. No lock-in.
+Because **Markdown is the only format that is readable by humans, parseable by agents, and diffable in git** — all without tooling. Memoss uses the [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) (OKF) — Markdown + YAML frontmatter — as its knowledge representation. You can `cat` a file, `grep` a concept, `git diff` a change. No proprietary database. No lock-in.
 
 ---
 
@@ -58,13 +58,15 @@ memoss serve
 ## Architecture
 
 ```
+apps/
+└── cli/              @memoss/cli           CLI (init, ingest, query, lint, serve)
+
 packages/
-├── core/          @memoss/core        OKF parser, agent engine, tool registry
-├── cli/           @memoss/cli         CLI (init, ingest, query, lint, serve)
-├── mcp/           @memoss/mcp-server   MCP server for external agent consumption
-├── web/           @memoss/web          Web UI (Phase 2)
-└── desktop/       @memoss/desktop      Electron app (Phase 2)
+├── core/             @memoss/core          OKF parser, agent engine, tool registry
+└── mcp/              @memoss/mcp-server     MCP server for external agent consumption
 ```
+
+Phase 2 adds `apps/web/` (Next.js UI) and `apps/desktop/` (Electron wrapper).
 
 Built with:
 - **Agent Engine** — Vercel AI SDK (multi-provider, type-safe tool calling)
@@ -99,7 +101,7 @@ Full details: [Product Design Document](docs/product-design.md) · [Phase 1 Plan
 
 ## Contributing
 
-Memoss is in early development. We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) (coming soon).
+Memoss is in early development. See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines (coming soon).
 
 ---
 
