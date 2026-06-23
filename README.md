@@ -123,7 +123,7 @@ One enterprise, one personal. Same architecture. **The pattern is validated. The
 | **Phase 2b** | 12–18 months | Discover, Desktop app, hybrid search, team PR workflow |
 | **Phase 3** | 18+ months | Hosted platform, bundle marketplace, enterprise |
 
-Full details: [Product Design v0.2](docs/product-design.md) · [Phase 1 Plan](docs/phase-1-plan.md)
+Full details: [Product Design v0.2](docs/product-design.md) · [Phase 1 Plan](docs/phase-1-plan.md) · [Phase 1 Technical Design](docs/phase-1-technical-design.md)
 
 ---
 
