@@ -19,12 +19,17 @@
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "vite": "^8.0.0"
   },
   "nx": {
-    "tags": ["scope:core", "type:lib", "publishable"]
+    "tags": [
+      "scope:core",
+      "type:lib",
+      "publishable"
+    ]
   }
 }
