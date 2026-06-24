@@ -11,6 +11,8 @@ export const modelSpecSchema = z.object({
   api_key_env: z.string().optional(),
 });
 
+export type ModelSpec = z.infer<typeof modelSpecSchema>;
+
 export const vaultConfigSchema = z.object({
   name: z.string(),
   description: z.string().default(''),

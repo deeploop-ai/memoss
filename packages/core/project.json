@@ -1,0 +1,21 @@
+{
+  "name": "@memoss/core",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/core/src",
+  "projectType": "library",
+  "tags": ["scope:core", "type:lib", "publishable"],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/dist"],
+      "options": {
+        "commands": [
+          "tsc -p tsconfig.lib.json",
+          "node scripts/copy-prompts.mjs"
+        ],
+        "cwd": "packages/core",
+        "parallel": false
+      }
+    }
+  }
+}

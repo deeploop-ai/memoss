@@ -28,7 +28,21 @@ export type {
   SourceKind,
 } from './adapters/types.js';
 export { createToolRegistry, TOOL_NAMES, type ToolName, type ToolRegistry } from './tools/registry.js';
-export { loadVaultConfig, parseVaultConfig, createDefaultVaultConfig, type VaultConfig } from './config/vault-config.js';
+export { loadVaultConfig, parseVaultConfig, createDefaultVaultConfig, type VaultConfig, type ModelSpec } from './config/vault-config.js';
+export {
+  runIngest,
+  runQuery,
+  runLint,
+  runAgentLoop,
+  resolveModel,
+  parseModelOverride,
+  buildSystemPrompt,
+  pickTools,
+  type AgentResult,
+  type IngestRunOptions,
+  type QueryRunOptions,
+  type LintRunOptions,
+} from './engine/index.js';
 
 export {
   MemossError,

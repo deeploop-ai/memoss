@@ -6,7 +6,8 @@ export type ErrorCode =
   | 'POLICY_VIOLATION'
   | 'GIT_ERROR'
   | 'FETCH_ERROR'
-  | 'SOURCE_ERROR';
+  | 'SOURCE_ERROR'
+  | 'AGENT_INCOMPLETE';
 
 export class MemossError extends Error {
   constructor(
