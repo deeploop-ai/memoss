@@ -21,13 +21,15 @@
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
     "@octokit/rest": "^22.0.1",
+    "ai": "^6.0.208",
     "fast-glob": "^3.3.3",
     "linkedom": "^0.18.12",
     "pdf-parse": "^1.1.1",
     "simple-git": "^3.36.0",
     "tslib": "^2.3.0",
     "turndown": "^7.2.4",
-    "yaml": "^2.9.0"
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/pdf-parse": "^1.1.5",
