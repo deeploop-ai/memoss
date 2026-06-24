@@ -29,6 +29,7 @@ export type {
 } from './adapters/types.js';
 export { createToolRegistry, TOOL_NAMES, type ToolName, type ToolRegistry } from './tools/registry.js';
 export { loadVaultConfig, parseVaultConfig, createDefaultVaultConfig, type VaultConfig, type ModelSpec } from './config/vault-config.js';
+export { discoverVaultPath, isVaultRoot } from './config/vault-discovery.js';
 export {
   runIngest,
   runQuery,
@@ -43,6 +44,7 @@ export {
   type QueryRunOptions,
   type LintRunOptions,
 } from './engine/index.js';
+export { createRunnerSetup } from './engine/index.js';
 
 export {
   MemossError,

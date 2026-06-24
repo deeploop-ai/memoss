@@ -13,12 +13,18 @@
         "platform": "node",
         "outputPath": "apps/cli/dist",
         "format": ["esm"],
-        "bundle": true,
-        "thirdParty": true,
+        "bundle": false,
+        "thirdParty": false,
         "main": "apps/cli/src/main.ts",
         "outputFileName": "main.js",
         "tsConfig": "apps/cli/tsconfig.app.json",
-        "assets": ["apps/cli/src/assets"],
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "../../schema-packs",
+            "output": "schema-packs"
+          }
+        ],
         "esbuildOptions": {
           "target": "node20",
           "sourcemap": true,

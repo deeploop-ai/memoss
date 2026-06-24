@@ -20,12 +20,18 @@
   ],
   "dependencies": {
     "@memoss/core": "workspace:*",
-    "tslib": "^2.3.0"
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "tslib": "^2.3.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "vite": "^8.0.0"
   },
   "nx": {
-    "tags": ["scope:mcp", "type:lib", "publishable"]
+    "tags": [
+      "scope:mcp",
+      "type:lib",
+      "publishable"
+    ]
   }
 }

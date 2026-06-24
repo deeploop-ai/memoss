@@ -70,9 +70,9 @@ export class SimpleGitAdapter implements GitAdapter {
     await git.merge([branch]);
   }
 
-  async deleteBranch(name: string): Promise<void> {
+  async deleteBranch(name: string, force = false): Promise<void> {
     const git = await this.requireRepo();
-    await git.deleteLocalBranch(name);
+    await git.deleteLocalBranch(name, force);
   }
 
   async commit(message: string): Promise<string> {
@@ -99,5 +99,11 @@ export class SimpleGitAdapter implements GitAdapter {
       date: entry.date,
       author: entry.author_name,
     }));
+  }
+
+  async listLocalBranches(): Promise<string[]> {
+    const git = await this.requireRepo();
+    const result = await git.branchLocal();
+    return result.all;
   }
 }

@@ -7,12 +7,20 @@
     "memoss": "./dist/main.js"
   },
   "dependencies": {
-    "@memoss/core": "workspace:*"
+    "@memoss/core": "workspace:*",
+    "@memoss/mcp-server": "workspace:^",
+    "citty": "^0.2.2",
+    "consola": "^3.4.2",
+    "open": "^11.0.0",
+    "pathe": "^2.0.3"
   },
   "devDependencies": {
     "vite": "^8.0.0"
   },
   "nx": {
-    "tags": ["scope:cli", "type:app"]
+    "tags": [
+      "scope:cli",
+      "type:app"
+    ]
   }
 }

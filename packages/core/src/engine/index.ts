@@ -1,3 +1,11 @@
+export {
+  createRunnerSetup,
+  createSourceForIngest,
+  ensureDraftBranch,
+  inferSourceKind,
+  resolveRunnerModel,
+  vaultExists,
+} from './runner-setup.js';
 export { runIngest } from './ingest-runner.js';
 export { runQuery } from './query-runner.js';
 export { runLint } from './lint-runner.js';

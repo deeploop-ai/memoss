@@ -1,0 +1,28 @@
+name: {{name}}
+description: "{{description}}"
+mode: wiki
+okf_version: "0.1"
+schema_pack: personal
+
+agent:
+  default_model:
+    provider: anthropic
+    model: claude-sonnet-4-6
+  lightweight_model:
+    provider: anthropic
+    model: claude-haiku-4-5
+  max_steps: 50
+  temperature: 0.3
+
+git:
+  enabled: true
+  auto_commit: true
+  draft_branch: true
+
+search:
+  strategy: auto
+  hybrid_threshold_pages: 200
+
+provenance:
+  enabled: false
+  track_source_hash: false

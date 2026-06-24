@@ -28,10 +28,11 @@ export interface GitAdapter {
   createBranch(name: string): Promise<void>;
   checkout(branch: string): Promise<void>;
   merge(branch: string, options?: { ffOnly?: boolean }): Promise<void>;
-  deleteBranch(name: string): Promise<void>;
+  deleteBranch(name: string, force?: boolean): Promise<void>;
   commit(message: string): Promise<string>;
   diff(ref?: string): Promise<string>;
   log(limit?: number): Promise<GitCommit[]>;
+  listLocalBranches(): Promise<string[]>;
 }
 
 export type SourceKind = 'file' | 'web' | 'github';
