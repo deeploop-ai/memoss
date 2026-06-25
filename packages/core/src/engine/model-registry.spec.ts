@@ -29,16 +29,18 @@ describe('resolveModel', () => {
     expect(model.modelId).toBe('claude-haiku-4-5');
   });
 
-  it('creates openai model with custom base_url', () => {
-    process.env.OPENAI_API_KEY = 'test-key';
+  it('creates openai chat model when base_url is set', () => {
+    process.env.DEEPSEEK_API_KEY = 'test-key';
 
     const model = resolveModel({
       provider: 'openai',
-      model: 'gpt-4.1-mini',
-      base_url: 'https://api.example.com/v1',
+      model: 'deepseek-v4-flash',
+      base_url: 'https://api.deepseek.com/v1',
+      api_key_env: 'DEEPSEEK_API_KEY',
     });
 
-    expect(model.modelId).toBe('gpt-4.1-mini');
+    expect(model.modelId).toBe('deepseek-v4-flash');
+    expect(model.provider).toBe('openai.chat');
   });
 });
 

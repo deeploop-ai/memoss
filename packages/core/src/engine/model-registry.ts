@@ -22,11 +22,17 @@ export function resolveModel(spec: ModelSpec): LanguageModel {
   switch (spec.provider) {
     case 'anthropic':
       return createAnthropic({ apiKey })(spec.model);
-    case 'openai':
-      return createOpenAI({
+    case 'openai': {
+      const openai = createOpenAI({
         apiKey,
         baseURL: spec.base_url,
-      })(spec.model);
+      });
+      // Third-party OpenAI-compatible APIs (DeepSeek, etc.) expose /chat/completions only.
+      if (spec.base_url) {
+        return openai.chat(spec.model);
+      }
+      return openai(spec.model);
+    }
     default: {
       const exhaustive: never = spec.provider;
       throw new MemossError(

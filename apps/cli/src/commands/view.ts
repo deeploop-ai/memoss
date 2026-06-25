@@ -1,5 +1,9 @@
 import { defineCommand } from 'citty';
 import { consola } from 'consola';
+import { pathToFileURL } from 'node:url';
+import open from 'open';
+import { join } from 'pathe';
+import { generateGraphHtml, loadVaultConfig } from '@memoss/core';
 import { resolveVaultRoot } from '../utils/vault.js';
 
 export const viewCommand = defineCommand({
@@ -24,7 +28,22 @@ export const viewCommand = defineCommand({
     },
   },
   async run({ args }) {
-    resolveVaultRoot(args);
-    consola.warn('Graph viewer is planned for M7. Use `memoss status` for now.');
+    const vaultRoot = resolveVaultRoot(args);
+    const config = loadVaultConfig(vaultRoot);
+    const output = args.output ?? join(vaultRoot, '.memoss', 'viz.html');
+
+    const result = generateGraphHtml({
+      bundleRoot: vaultRoot,
+      outPath: output,
+      bundleName: config.name,
+    });
+
+    consola.success(
+      `Wrote ${output} (${result.concepts} concepts, ${result.edges} edges, ${result.bytes} bytes)`,
+    );
+
+    if (!args.noOpen) {
+      await open(pathToFileURL(output).href);
+    }
   },
 });

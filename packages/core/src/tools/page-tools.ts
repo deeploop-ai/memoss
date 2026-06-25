@@ -1,13 +1,25 @@
-import { z } from 'zod';
 import { MemossError } from '../errors.js';
 import { validateForWrite } from '../okf/validator.js';
 import type { ToolContext } from './context.js';
 import { defineTool } from './define-tool.js';
+import {
+  appendLogSchema,
+  emptySchema,
+  fetchUrlSchema,
+  gitCommitSchema,
+  gitCreateBranchSchema,
+  gitDiffSchema,
+  gitLogSchema,
+  gitMergeSchema,
+  listPagesSchema,
+  pathSchema,
+  readIndexSchema,
+  readSourceSchema,
+  searchKbSchema,
+  writeIndexSchema,
+  writePageSchema,
+} from './tool-schemas.js';
 import { mergeFrontmatter, normalizeToolPath, toolResult } from './utils.js';
-
-const pathSchema = z.object({
-  path: z.string().describe('Vault-relative path to the OKF page'),
-});
 
 export function createReadPageTool(ctx: ToolContext) {
   return defineTool(ctx, {
@@ -31,12 +43,6 @@ export function createReadPageTool(ctx: ToolContext) {
     },
   });
 }
-
-const writePageSchema = z.object({
-  path: z.string(),
-  frontmatter: z.record(z.string(), z.unknown()),
-  body: z.string(),
-});
 
 export function createWritePageTool(ctx: ToolContext) {
   return defineTool(ctx, {
@@ -84,9 +90,7 @@ export function createWritePageTool(ctx: ToolContext) {
 export function createListPagesTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'List OKF pages in the vault, optionally scoped to a directory.',
-    inputSchema: z.object({
-      dir: z.string().optional(),
-    }),
+    inputSchema: listPagesSchema,
     execute: async ({ dir }) => ({
       pages: await ctx.store.listPages(dir ? normalizeToolPath(dir) : undefined),
     }),
@@ -108,9 +112,7 @@ export function createDeletePageTool(ctx: ToolContext) {
 export function createReadIndexTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Read an index.md file from the vault.',
-    inputSchema: z.object({
-      dir: z.string().optional(),
-    }),
+    inputSchema: readIndexSchema,
     execute: async ({ dir }) => ({
       dir: dir ?? '',
       content: await ctx.store.readIndex(dir ? normalizeToolPath(dir) : undefined),
@@ -121,10 +123,7 @@ export function createReadIndexTool(ctx: ToolContext) {
 export function createWriteIndexTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Write an index.md file in the vault.',
-    inputSchema: z.object({
-      dir: z.string(),
-      content: z.string(),
-    }),
+    inputSchema: writeIndexSchema,
     execute: async ({ dir, content }) => {
       const normalized = normalizeToolPath(dir);
       await ctx.store.writeIndex(normalized, content);
@@ -136,7 +135,7 @@ export function createWriteIndexTool(ctx: ToolContext) {
 export function createReadLogTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Read the vault activity log.',
-    inputSchema: z.object({}),
+    inputSchema: emptySchema,
     execute: async () => ({ content: await ctx.store.readLog() }),
   });
 }
@@ -144,10 +143,7 @@ export function createReadLogTool(ctx: ToolContext) {
 export function createAppendLogTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Append a line to the vault activity log.',
-    inputSchema: z.object({
-      line: z.string(),
-      date: z.string().optional(),
-    }),
+    inputSchema: appendLogSchema,
     execute: async ({ line, date }) => {
       await ctx.store.appendLog(line, date);
       return { appended: true };
@@ -158,9 +154,7 @@ export function createAppendLogTool(ctx: ToolContext) {
 export function createSearchKbTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Search the knowledge base using grep-style matching.',
-    inputSchema: z.object({
-      query: z.string(),
-    }),
+    inputSchema: searchKbSchema,
     execute: async ({ query }) => ({
       results: await import('./search-kb.js').then((mod) =>
         mod.searchKb(ctx.store, query),
@@ -172,9 +166,7 @@ export function createSearchKbTool(ctx: ToolContext) {
 export function createFetchUrlTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Fetch a URL and return markdown text.',
-    inputSchema: z.object({
-      url: z.string().url(),
-    }),
+    inputSchema: fetchUrlSchema,
     execute: async ({ url }) => {
       const { fetchUrl } = await import('../adapters/fetch.js');
       const result = await fetchUrl(url);
@@ -192,7 +184,7 @@ export function createFetchUrlTool(ctx: ToolContext) {
 export function createListSourcesTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'List items available from the active source adapter.',
-    inputSchema: z.object({}),
+    inputSchema: emptySchema,
     execute: async () => {
       if (!ctx.source) {
         throw new MemossError('SOURCE_ERROR', 'No source adapter configured');
@@ -205,9 +197,7 @@ export function createListSourcesTool(ctx: ToolContext) {
 export function createReadSourceTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Read one item from the active source adapter.',
-    inputSchema: z.object({
-      id: z.string(),
-    }),
+    inputSchema: readSourceSchema,
     execute: async ({ id }) => {
       if (!ctx.source) {
         throw new MemossError('SOURCE_ERROR', 'No source adapter configured');
@@ -226,9 +216,7 @@ function requireGit(ctx: ToolContext) {
 export function createGitCommitTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Stage all changes and create a git commit.',
-    inputSchema: z.object({
-      message: z.string(),
-    }),
+    inputSchema: gitCommitSchema,
     execute: async ({ message }) => {
       requireGit(ctx);
       const hash = await ctx.git.commit(message);
@@ -240,9 +228,7 @@ export function createGitCommitTool(ctx: ToolContext) {
 export function createGitDiffTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Show the current git diff.',
-    inputSchema: z.object({
-      ref: z.string().optional(),
-    }),
+    inputSchema: gitDiffSchema,
     execute: async ({ ref }) => {
       requireGit(ctx);
       return { diff: await ctx.git.diff(ref) };
@@ -253,9 +239,7 @@ export function createGitDiffTool(ctx: ToolContext) {
 export function createGitLogTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Show recent git commits.',
-    inputSchema: z.object({
-      limit: z.number().int().positive().optional(),
-    }),
+    inputSchema: gitLogSchema,
     execute: async ({ limit }) => {
       requireGit(ctx);
       return { commits: await ctx.git.log(limit) };
@@ -266,9 +250,7 @@ export function createGitLogTool(ctx: ToolContext) {
 export function createGitCreateBranchTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Create and checkout a git branch.',
-    inputSchema: z.object({
-      name: z.string(),
-    }),
+    inputSchema: gitCreateBranchSchema,
     execute: async ({ name }) => {
       requireGit(ctx);
       await ctx.git.createBranch(name);
@@ -280,10 +262,7 @@ export function createGitCreateBranchTool(ctx: ToolContext) {
 export function createGitMergeTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Merge a git branch into the current branch.',
-    inputSchema: z.object({
-      branch: z.string(),
-      ffOnly: z.boolean().optional(),
-    }),
+    inputSchema: gitMergeSchema,
     execute: async ({ branch, ffOnly }) => {
       requireGit(ctx);
       await ctx.git.merge(branch, { ffOnly });

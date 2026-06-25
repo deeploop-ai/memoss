@@ -47,33 +47,58 @@ Because **Markdown is the only format that is readable by humans, parseable by a
 
 ---
 
-## Quickstart (Coming Soon)
+## Quickstart
+
+### From source (development)
 
 ```bash
-# Install
-npm install -g memoss
+git clone https://github.com/your-org/memoss.git
+cd memoss
+pnpm install
+pnpm nx build core cli mcp-server
 
-# Create a knowledge base (from a schema pack: personal | research | data-catalog)
-memoss init ./my-knowledge
+# Set your LLM API key
+export ANTHROPIC_API_KEY=sk-ant-...
+
+# Create a knowledge base
+node apps/cli/dist/main.js init ./my-knowledge --pack research
+cd my-knowledge
 
 # Ingest your first source (writes to draft branch)
-memoss ingest "https://example.com/article" --type web
+node ../apps/cli/dist/main.js ingest "https://example.com/article" --type web
 
 # Review and merge agent changes
-memoss approve
+node ../apps/cli/dist/main.js approve
 
 # Ask a question
-memoss query "what does this article say about X?"
+node ../apps/cli/dist/main.js query "what does this article say about X?"
 
 # File the answer back into the knowledge base
-memoss query "compare X and Y" --save
+node ../apps/cli/dist/main.js query "compare X and Y" --save
 
 # Check knowledge base health
-memoss lint
+node ../apps/cli/dist/main.js lint
+
+# Visualize the knowledge graph
+node ../apps/cli/dist/main.js view
 
 # Start MCP server for other AI agents
+node ../apps/cli/dist/main.js serve
+```
+
+### Global install (coming soon)
+
+```bash
+npm install -g memoss
+memoss init ./my-knowledge
+memoss ingest "https://example.com/article" --type web
+memoss approve
+memoss query "what does this article say about X?"
+memoss view
 memoss serve
 ```
+
+Full command reference: [docs/cli-reference.md](docs/cli-reference.md) · OKF format: [docs/okf-spec.md](docs/okf-spec.md)
 
 ---
 
@@ -123,7 +148,7 @@ One enterprise, one personal. Same architecture. **The pattern is validated. The
 | **Phase 2b** | 12–18 months | Discover, Desktop app, hybrid search, team PR workflow |
 | **Phase 3** | 18+ months | Hosted platform, bundle marketplace, enterprise |
 
-Full details: [Product Design v0.2](docs/product-design.md) · [Phase 1 Plan](docs/phase-1-plan.md) · [Phase 1 Technical Design](docs/phase-1-technical-design.md)
+Full details: [Product Design v0.2](docs/product-design.md) · [Phase 1 Plan](docs/phase-1-plan.md) · [Phase 1 Technical Design](docs/phase-1-technical-design.md) · [CLI Reference](docs/cli-reference.md) · [OKF Spec](docs/okf-spec.md)
 
 ---
 

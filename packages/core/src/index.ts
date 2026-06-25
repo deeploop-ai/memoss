@@ -28,6 +28,27 @@ export type {
   SourceKind,
 } from './adapters/types.js';
 export { createToolRegistry, TOOL_NAMES, type ToolName, type ToolRegistry } from './tools/registry.js';
+export { getToolInputSchema } from './tools/extract-schema.js';
+export {
+  appendLogSchema,
+  emptySchema,
+  fetchUrlSchema,
+  gitCommitSchema,
+  gitCreateBranchSchema,
+  gitDiffSchema,
+  gitLogSchema,
+  gitMergeSchema,
+  listPagesSchema,
+  pathSchema,
+  readIndexSchema,
+  readSourceSchema,
+  runIngestSchema,
+  runLintSchema,
+  runQuerySchema,
+  searchKbSchema,
+  writeIndexSchema,
+  writePageSchema,
+} from './tools/tool-schemas.js';
 export { loadVaultConfig, parseVaultConfig, createDefaultVaultConfig, type VaultConfig, type ModelSpec } from './config/vault-config.js';
 export { discoverVaultPath, isVaultRoot } from './config/vault-discovery.js';
 export {
@@ -45,6 +66,7 @@ export {
   type LintRunOptions,
 } from './engine/index.js';
 export { createRunnerSetup } from './engine/index.js';
+export { generateGraphHtml, type GraphGenerationResult } from './viewer/generate.js';
 
 export {
   MemossError,
