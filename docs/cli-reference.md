@@ -21,7 +21,14 @@ node apps/cli/dist/main.js <command>
 pnpm nx run cli:build && node apps/cli/dist/main.js status
 ```
 
-Global npm install (`npm install -g memoss`) is planned for the Phase 1a release.
+Global install:
+
+```bash
+npm install -g @memoss/cli
+memoss --version
+```
+
+The npm package is `@memoss/cli`; the executable on your PATH is still `memoss`.
 
 ---
 
@@ -241,7 +248,7 @@ npm login
 # Create the @memoss org on npmjs.com if publishing scoped libraries
 
 pnpm publish:libs   # @memoss/core, @memoss/mcp-server
-pnpm publish:cli    # memoss (global CLI)
+pnpm publish:cli    # @memoss/cli (bin: memoss; pulls @memoss/core + @memoss/mcp-server from npm)
 ```
 
 

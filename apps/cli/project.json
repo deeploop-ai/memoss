@@ -69,7 +69,7 @@
       "executor": "nx:noop"
     },
     "publish": {
-      "dependsOn": ["prune"],
+      "dependsOn": ["build"],
       "executor": "nx:run-commands",
       "options": {
         "command": "node scripts/prepare-cli-publish.mjs && cd apps/cli/dist && npm publish --access public",

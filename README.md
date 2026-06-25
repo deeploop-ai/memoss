@@ -86,10 +86,10 @@ node ../apps/cli/dist/main.js view
 node ../apps/cli/dist/main.js serve
 ```
 
-### Global install (coming soon)
+### Global install
 
 ```bash
-npm install -g memoss
+npm install -g @memoss/cli
 memoss init ./my-knowledge
 memoss ingest "https://example.com/article" --type web
 memoss approve
