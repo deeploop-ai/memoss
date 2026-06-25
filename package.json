@@ -3,7 +3,10 @@
   "version": "0.0.0",
   "license": "Apache-2.0",
   "packageManager": "pnpm@9.15.9",
-  "scripts": {},
+  "scripts": {
+    "publish:libs": "nx release publish --first-release -p @memoss/core,@memoss/mcp-server",
+    "publish:cli": "nx run @memoss/cli:publish"
+  },
   "private": true,
   "devDependencies": {
     "@eslint/js": "^9.8.0",

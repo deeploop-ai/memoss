@@ -1,6 +1,20 @@
 {
   "name": "@memoss/core",
   "version": "0.0.1",
+  "description": "OKF document model, agent engine, tools, and policies for Memoss.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deeploop-ai/memoss.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/deeploop-ai/memoss#readme",
+  "bugs": {
+    "url": "https://github.com/deeploop-ai/memoss/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -8,7 +22,6 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "@memoss/source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"

@@ -1,7 +1,21 @@
 {
-  "name": "@memoss/cli",
+  "name": "memoss",
   "version": "0.0.1",
-  "private": true,
+  "description": "Agent-native knowledge runtime - ingest, query, and lint your OKF knowledge base from the CLI.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deeploop-ai/memoss.git",
+    "directory": "apps/cli"
+  },
+  "homepage": "https://github.com/deeploop-ai/memoss#readme",
+  "bugs": {
+    "url": "https://github.com/deeploop-ai/memoss/issues"
+  },
+  "keywords": ["memoss", "knowledge-base", "okf", "cli", "mcp", "ai", "wiki"],
+  "engines": {
+    "node": ">=20"
+  },
   "type": "module",
   "bin": {
     "memoss": "./dist/main.js"

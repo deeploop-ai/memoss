@@ -234,7 +234,16 @@ API keys are read from environment variables (`ANTHROPIC_API_KEY`, `OPENAI_API_K
 
 ---
 
-## See also
+## Publishing (maintainers)
+
+```bash
+npm login
+# Create the @memoss org on npmjs.com if publishing scoped libraries
+
+pnpm publish:libs   # @memoss/core, @memoss/mcp-server
+pnpm publish:cli    # memoss (global CLI)
+```
+
 
 - [Quickstart](../README.md#quickstart)
 - [OKF Spec](okf-spec.md)
