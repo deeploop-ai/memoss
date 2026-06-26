@@ -52,7 +52,7 @@ Because **Markdown is the only format that is readable by humans, parseable by a
 ### From source (development)
 
 ```bash
-git clone https://github.com/your-org/memoss.git
+git clone https://github.com/deeploop-ai/memoss.git
 cd memoss
 pnpm install
 pnpm nx build core cli mcp-server
@@ -60,42 +60,78 @@ pnpm nx build core cli mcp-server
 # Set your LLM API key
 export ANTHROPIC_API_KEY=sk-ant-...
 
-# Create a knowledge base
+# Create a knowledge base (default: ~/.memoss-vault)
+node apps/cli/dist/main.js init --pack research
+
+# Or specify a path
 node apps/cli/dist/main.js init ./my-knowledge --pack research
-cd my-knowledge
+cd ./my-knowledge
 
 # Ingest your first source (writes to draft branch)
-node ../apps/cli/dist/main.js ingest "https://example.com/article" --type web
+node apps/cli/dist/main.js ingest "https://example.com/article" --type web
 
 # Review and merge agent changes
-node ../apps/cli/dist/main.js approve
+node apps/cli/dist/main.js approve
 
 # Ask a question
-node ../apps/cli/dist/main.js query "what does this article say about X?"
+node apps/cli/dist/main.js query "what does this article say about X?"
 
 # File the answer back into the knowledge base
-node ../apps/cli/dist/main.js query "compare X and Y" --save
+node apps/cli/dist/main.js query "compare X and Y" --save
 
 # Check knowledge base health
-node ../apps/cli/dist/main.js lint
+node apps/cli/dist/main.js lint
 
 # Visualize the knowledge graph
-node ../apps/cli/dist/main.js view
+node apps/cli/dist/main.js graph
 
-# Start MCP server for other AI agents
-node ../apps/cli/dist/main.js serve
+# Start MCP server for other AI agents (agent tools only by default)
+node apps/cli/dist/main.js mcp serve
+node apps/cli/dist/main.js mcp serve --capabilities agent,read
+node apps/cli/dist/main.js mcp serve --capabilities full
 ```
 
 ### Global install
 
 ```bash
 npm install -g @memoss/cli
-memoss init ./my-knowledge
+memoss --version
+
+# Default vault at ~/.memoss-vault
+memoss init
 memoss ingest "https://example.com/article" --type web
 memoss approve
 memoss query "what does this article say about X?"
-memoss view
-memoss serve
+memoss graph
+memoss mcp serve
+```
+
+### Configuration
+
+| Path | Purpose |
+|------|---------|
+| `~/.memoss-vault` | Default vault when none is specified |
+| `~/.memoss/config.yaml` | User-level shared config (model defaults, merged into vault config) |
+| `MEMOSS_VAULT_PATH` | Override vault location |
+| `MEMOSS_MCP_CAPABILITIES` | MCP tool levels: `agent`, `read`, `write`, or `full` |
+
+Vault discovery order: `--vault` / `-C` → `MEMOSS_VAULT_PATH` → walk up from cwd → `~/.memoss-vault`.
+
+### MCP in Cherry Studio
+
+Use **STDIO** transport. Put the executable in **Command** and subcommands in **Arguments**:
+
+| Field | Value |
+|-------|-------|
+| Command | `memoss` |
+| Arguments | `mcp` / `serve` |
+| Environment | `MEMOSS_VAULT_PATH=/path/to/vault` |
+
+By default, MCP exposes only **agent** tools (`run_query`, `run_ingest`, `run_lint`). Use `run_query` for Q&A instead of calling `search_kb` directly. To expose low-level read/write tools:
+
+```bash
+memoss mcp serve --capabilities agent,read
+memoss mcp serve --capabilities full
 ```
 
 Full command reference: [docs/cli-reference.md](docs/cli-reference.md) · OKF format: [docs/okf-spec.md](docs/okf-spec.md)
@@ -106,7 +142,7 @@ Full command reference: [docs/cli-reference.md](docs/cli-reference.md) · OKF fo
 
 ```
 apps/
-└── cli/                    @memoss/cli     init · ingest · query · lint · approve · serve
+└── cli/                    @memoss/cli     init · ingest · query · lint · approve · graph · mcp
 
 packages/
 ├── core/                   @memoss/core    OKF · agents · tools · policies
@@ -160,4 +196,4 @@ Memoss is in early development. See [CONTRIBUTING.md](CONTRIBUTING.md) for contr
 
 ## License
 
-[Apache 2.0](LICENSE)
+Memoss is open source under the [Apache License 2.0](LICENSE).
