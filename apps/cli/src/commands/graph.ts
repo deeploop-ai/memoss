@@ -6,9 +6,9 @@ import { join } from 'pathe';
 import { generateGraphHtml, loadVaultConfig } from '@memoss/core';
 import { resolveVaultRoot } from '../utils/vault.js';
 
-export const viewCommand = defineCommand({
+export const graphCommand = defineCommand({
   meta: {
-    name: 'view',
+    name: 'graph',
     description: 'Generate and open the knowledge graph viewer',
   },
   args: {

@@ -7,7 +7,7 @@ import { lintCommand } from './commands/lint.js';
 import { approveCommand } from './commands/approve.js';
 import { rejectCommand } from './commands/reject.js';
 import { statusCommand } from './commands/status.js';
-import { viewCommand } from './commands/view.js';
+import { graphCommand } from './commands/graph.js';
 import { mcpCommand } from './commands/mcp.js';
 
 export const mainCommand = defineCommand({
@@ -24,7 +24,7 @@ export const mainCommand = defineCommand({
     approve: approveCommand,
     reject: rejectCommand,
     status: statusCommand,
-    view: viewCommand,
+    graph: graphCommand,
     mcp: mcpCommand,
   },
 });
