@@ -1,8 +1,10 @@
 # Memoss
 
-> **像苔藓一样自然生长的记忆。**
+> **Memory that grows naturally, like moss.**
 >
 > *Your file system is your knowledge base. Agents compile, maintain, and cross-reference it continuously.*
+
+[中文文档](README_ZH.md)
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Phase](https://img.shields.io/badge/phase-1a-yellow.svg)](docs/phase-1-plan.md)
@@ -27,6 +29,7 @@ You drop sources. Agents build knowledge. You ask questions. Agents keep it aliv
 - **Ingest** — Drop a URL, file, or repo. The agent reads it, extracts knowledge, updates every related page, and commits (to a draft branch for your review).
 - **Query** — Ask a question. The agent searches the knowledge base, synthesizes an answer with citations, and can file the answer back as a new page.
 - **Lint** — The agent checks for contradictions, stale claims, orphan pages, and missing links. Knowledge stays healthy.
+- **Extract** — Convert a source to Markdown under `sources/extracted/` using [skills.sh](https://skills.sh) skills (used automatically during ingest, or standalone via `memoss extract`).
 
 **Coming in Phase 2:** Enrich · Discover · Sync · Publish · Bridge (OKF ↔ enterprise catalog)
 
@@ -127,7 +130,21 @@ Use **STDIO** transport. Put the executable in **Command** and subcommands in **
 | Arguments | `mcp` / `serve` |
 | Environment | `MEMOSS_VAULT_PATH=/path/to/vault` |
 
-By default, MCP exposes only **agent** tools (`run_query`, `run_ingest`, `run_lint`). Use `run_query` for Q&A instead of calling `search_kb` directly. To expose low-level read/write tools:
+#### Agent tools (default)
+
+By default, MCP exposes **agent** runners only:
+
+| Tool | Use when |
+|------|----------|
+| `run_ingest` | Add a URL, file, or source to the knowledge base (extract + analyze + update pages). **Prefer this** when the user wants to ingest or save content. |
+| `run_ingest_status` | Poll an async `run_ingest` job by `jobId`. |
+| `run_extract` | Extract-only: write Markdown to `sources/extracted/`. Does **not** update the wiki. Use only when extraction alone is requested. |
+| `run_query` | Ask questions against the knowledge base. Prefer this over calling `search_kb` directly. |
+| `run_lint` | Check knowledge base health (contradictions, stale pages, broken links). |
+
+`run_ingest` runs extract automatically when needed (`extract: auto`). For requests like *“add this URL to my knowledge base”*, the client should call **`run_ingest`**, not `run_extract`.
+
+To expose low-level read/write tools:
 
 ```bash
 memoss mcp serve --capabilities agent,read
