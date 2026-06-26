@@ -1,15 +1,15 @@
 import { defineCommand } from 'citty';
 import { consola } from 'consola';
-import { runIngest, type SourceKind } from '@memoss/core';
+import { runExtract, type SourceKind } from '@memoss/core';
 import { resolveVaultRoot } from '../utils/vault.js';
 import { resolveModelArgs } from '../utils/model-args.js';
 import { logAgentStep } from '../utils/errors.js';
 import { ExitCode } from '../exit-codes.js';
 
-export const ingestCommand = defineCommand({
+export const extractCommand = defineCommand({
   meta: {
-    name: 'ingest',
-    description: 'Ingest a source into the knowledge base',
+    name: 'extract',
+    description: 'Extract a source to markdown using agent skills',
   },
   args: {
     source: {
@@ -22,10 +22,9 @@ export const ingestCommand = defineCommand({
       description: 'Source type',
       default: 'auto',
     },
-    noDraft: {
-      type: 'boolean',
-      description: 'Write directly without creating a draft branch',
-      default: false,
+    skill: {
+      type: 'string',
+      description: 'Extraction skill name (from skills.sh / .agents/skills)',
     },
     model: {
       type: 'string',
@@ -34,15 +33,6 @@ export const ingestCommand = defineCommand({
     baseUrl: {
       type: 'string',
       description: 'OpenAI-compatible base URL (with --model openai/...)',
-    },
-    skill: {
-      type: 'string',
-      description: 'Extraction skill name (skills.sh / .agents/skills)',
-    },
-    noExtract: {
-      type: 'boolean',
-      description: 'Skip extraction; ingest source as-is',
-      default: false,
     },
     noCache: {
       type: 'boolean',
@@ -59,16 +49,14 @@ export const ingestCommand = defineCommand({
     const vaultRoot = resolveVaultRoot(args);
     const kind = args.type as SourceKind | 'auto';
 
-    consola.info(`Ingesting ${args.source} into ${vaultRoot}`);
+    consola.info(`Extracting ${args.source} → ${vaultRoot}`);
 
-    const result = await runIngest({
+    const result = await runExtract({
       vaultRoot,
       source: args.source,
       kind,
       skill: args.skill,
-      extract: args.noExtract ? false : 'auto',
       noCache: args.noCache,
-      noDraft: args.noDraft,
       model: resolveModelArgs(args),
       onStepFinish: (step) => {
         for (const call of step.toolCalls) {
@@ -80,22 +68,29 @@ export const ingestCommand = defineCommand({
       },
     });
 
-    if (result.draftBranch) {
-      consola.info(`Draft branch: ${result.draftBranch}`);
+    if (result.status === 'skipped') {
+      consola.info('Extraction skipped (markdown/text source).');
+      consola.log(result.outputPath);
+      return;
+    }
+
+    consola.success(`Wrote ${result.outputPath}`);
+    if (result.cached) {
+      consola.info('Used cached extraction result.');
+    }
+
+    if (result.meta?.fallback) {
+      consola.info('Used built-in fallback extractor.');
+    } else if (result.meta?.skill) {
+      consola.info(`Skill: ${result.meta.skill}`);
     }
 
     if (result.text) {
       consola.log(result.text);
     }
 
-    if (result.diff?.trim()) {
-      consola.box('Diff summary');
-      consola.log(result.diff);
-      consola.info('Review changes, then run `memoss approve` or `memoss reject`.');
-    }
-
     if (result.status === 'incomplete') {
-      consola.warn('Agent stopped before completing (max steps reached).');
+      consola.warn('Extract agent stopped before completing (max steps reached).');
       process.exit(ExitCode.AGENT_INCOMPLETE);
     }
   },

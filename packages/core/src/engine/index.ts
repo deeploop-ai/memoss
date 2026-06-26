@@ -7,6 +7,7 @@ export {
   vaultExists,
 } from './runner-setup.js';
 export { runIngest } from './ingest-runner.js';
+export { runExtract, resolveIngestSource } from './extract-runner.js';
 export { runQuery } from './query-runner.js';
 export { runLint } from './lint-runner.js';
 export { runAgentLoop } from './orchestrator.js';
@@ -28,6 +29,8 @@ export type {
   AgentStepSummary,
   IngestRunOptions,
   IngestRunResult,
+  ExtractRunOptions,
+  ExtractRunResult,
   QueryRunOptions,
   QueryRunResult,
   LintRunOptions,

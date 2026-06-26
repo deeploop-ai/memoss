@@ -1,6 +1,7 @@
 import type { FinishReason, LanguageModel, StepResult, ToolSet } from 'ai';
 import type { ModelSpec } from '../config/vault-config.js';
 import type { SourceKind } from '../adapters/types.js';
+import type { ExtractKind, ExtractMeta, ExtractRoute } from '../skills/types.js';
 
 export type AgentStatus = 'complete' | 'incomplete';
 
@@ -43,6 +44,35 @@ export interface IngestRunOptions extends RunnerBaseOptions {
   source: string;
   kind?: SourceKind | 'auto';
   noDraft?: boolean;
+  extract?: boolean | 'auto';
+  skill?: string;
+  noExtract?: boolean;
+  noCache?: boolean;
+  onWarning?: (message: string) => void;
+}
+
+export interface ExtractRunOptions extends RunnerBaseOptions {
+  source: string;
+  kind?: SourceKind | 'auto';
+  skill?: string;
+  onWarning?: (message: string) => void;
+  noCache?: boolean;
+}
+
+export type ExtractRunStatus = 'complete' | 'incomplete' | 'skipped';
+
+export interface ExtractRunResult {
+  status: ExtractRunStatus;
+  source: string;
+  outputPath: string;
+  extractKind: ExtractKind;
+  route: ExtractRoute;
+  meta?: ExtractMeta;
+  cached?: boolean;
+  text?: string;
+  steps?: AgentStepSummary[];
+  finishReason?: FinishReason;
+  totalSteps?: number;
 }
 
 export interface QueryRunOptions extends RunnerBaseOptions {

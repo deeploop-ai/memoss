@@ -1,5 +1,7 @@
+import { registerIngestProvenance } from '../provenance/manifest.js';
 import { MemossError } from '../errors.js';
 import { buildSystemPrompt, createPromptContext } from './context.js';
+import { resolveIngestSource } from './extract-runner.js';
 import { INGEST_TOOL_NAMES, pickTools } from './pick-tools.js';
 import { runAgentLoop } from './orchestrator.js';
 import {
@@ -36,9 +38,24 @@ export async function runIngest(
   }
 
   const sourceKind = opts.kind ?? 'auto';
+  const resolved = await resolveIngestSource({
+    vaultRoot: opts.vaultRoot,
+    source: opts.source,
+    kind: sourceKind,
+    skill: opts.skill,
+    extract: opts.noExtract ? false : (opts.extract ?? 'auto'),
+    noCache: opts.noCache,
+    model: opts.model,
+    abortSignal: opts.abortSignal,
+    onStepFinish: opts.onStepFinish,
+    onWarning: opts.onWarning,
+  });
+
   const resolvedKind =
-    sourceKind === 'auto' ? inferSourceKind(opts.source) : sourceKind;
-  const source = createSourceForIngest(opts.source, sourceKind);
+    resolved.kind === 'auto'
+      ? inferSourceKind(resolved.source)
+      : resolved.kind;
+  const source = createSourceForIngest(resolved.source, resolved.kind);
 
   const useDraft = !opts.noDraft;
   const setup = createRunnerSetup({
@@ -64,7 +81,7 @@ export async function runIngest(
   const agentResult = await runAgentLoop({
     model,
     system,
-    prompt: buildIngestPrompt(opts.source, resolvedKind),
+    prompt: buildIngestPrompt(resolved.source, resolvedKind),
     tools,
     maxSteps: setup.config.agent.max_steps,
     temperature: setup.config.agent.temperature,
@@ -77,6 +94,12 @@ export async function runIngest(
   let diff: string | undefined;
   if (useDraft && setup.config.git.enabled) {
     diff = await setup.ctx.git.diff();
+  }
+
+  if (setup.config.provenance.enabled && agentResult.status === 'complete') {
+    registerIngestProvenance(opts.vaultRoot, {
+      sourceUri: resolved.originalSource,
+    });
   }
 
   return {

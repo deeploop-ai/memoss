@@ -4,6 +4,8 @@ import {
   getToolInputSchema,
   runIngest,
   runIngestSchema,
+  runExtract,
+  runExtractSchema,
   runLint,
   runLintSchema,
   runQuery,
@@ -20,7 +22,12 @@ import {
 } from './capabilities.js';
 import { MCP_SERVER_VERSION } from './version.js';
 
-export const RUNNER_TOOL_NAMES = ['run_ingest', 'run_query', 'run_lint'] as const;
+export const RUNNER_TOOL_NAMES = [
+  'run_ingest',
+  'run_extract',
+  'run_query',
+  'run_lint',
+] as const;
 export type RunnerToolName = (typeof RUNNER_TOOL_NAMES)[number];
 export type McpToolName = ToolName | RunnerToolName;
 
@@ -81,6 +88,7 @@ export function registerMemossTools(
   ctx: MemossMcpContext,
   handlers: {
     runIngest: (args: z.infer<typeof runIngestSchema>) => Promise<unknown>;
+    runExtract: (args: z.infer<typeof runExtractSchema>) => Promise<unknown>;
     runQuery: (args: z.infer<typeof runQuerySchema>) => Promise<unknown>;
     runLint: (args: z.infer<typeof runLintSchema>) => Promise<unknown>;
   },
@@ -112,6 +120,17 @@ export function registerMemossTools(
         inputSchema: runIngestSchema,
       },
       async (args) => formatToolResult(await handlers.runIngest(args)),
+    );
+  }
+
+  if (enabled.has('run_extract')) {
+    server.registerTool(
+      'run_extract',
+      {
+        description: 'Extract a source to markdown using agent skills',
+        inputSchema: runExtractSchema,
+      },
+      async (args) => formatToolResult(await handlers.runExtract(args)),
     );
   }
 
@@ -169,6 +188,20 @@ export function createMemossMcpServer(
           source: args.source,
           kind: args.kind,
           noDraft: args.noDraft,
+          skill: args.skill,
+          extract:
+            args.noExtract === true
+              ? false
+              : (args.extract ?? 'auto'),
+          noCache: args.noCache,
+        }),
+      runExtract: (args) =>
+        runExtract({
+          vaultRoot,
+          source: args.source,
+          kind: args.kind,
+          skill: args.skill,
+          noCache: args.noCache,
         }),
       runQuery: (args) =>
         runQuery({

@@ -9,6 +9,7 @@ export const DEFAULT_MCP_CAPABILITIES: readonly McpCapability[] = ['agent'];
 export const AGENT_TOOL_NAMES: readonly RunnerToolName[] = [
   'run_query',
   'run_ingest',
+  'run_extract',
   'run_lint',
 ];
 

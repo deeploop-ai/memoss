@@ -43,6 +43,7 @@ export {
   readIndexSchema,
   readSourceSchema,
   runIngestSchema,
+  runExtractSchema,
   runLintSchema,
   runQuerySchema,
   searchKbSchema,
@@ -58,6 +59,7 @@ export {
   type VaultConfig,
   type UserConfig,
   type ModelSpec,
+  type ExtractionConfig,
 } from './config/vault-config.js';
 export {
   discoverVaultPath,
@@ -68,9 +70,13 @@ export {
   getDefaultVaultPath,
   getUserConfigDir,
   getUserConfigPath,
+  getUserAgentsSkillsDir,
+  getUserMemossSkillsDir,
 } from './config/user-paths.js';
 export {
   runIngest,
+  runExtract,
+  resolveIngestSource,
   runQuery,
   runLint,
   runAgentLoop,
@@ -80,9 +86,24 @@ export {
   pickTools,
   type AgentResult,
   type IngestRunOptions,
+  type ExtractRunOptions,
+  type ExtractRunResult,
   type QueryRunOptions,
   type LintRunOptions,
 } from './engine/index.js';
+export { discoverSkills } from './skills/discovery.js';
+export { buildSkillCatalog } from './skills/catalog.js';
+export { resolveExtractRoute } from './skills/router.js';
+export { parseSkillMd } from './skills/parse-skill-md.js';
+export { loadSourceManifest, registerExtractProvenance, registerIngestProvenance } from './provenance/manifest.js';
+export { isProjectSkillsTrusted, writeProjectSkillTrust, readProjectSkillTrust } from './skills/trust.js';
+export { matchGlob, resolveSkillOverride } from './skills/glob-match.js';
+export type {
+  SkillRecord,
+  ExtractKind,
+  ExtractRoute,
+  ExtractMeta,
+} from './skills/types.js';
 export { createRunnerSetup } from './engine/index.js';
 export { generateGraphHtml, type GraphGenerationResult } from './viewer/generate.js';
 

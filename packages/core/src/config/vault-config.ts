@@ -15,6 +15,22 @@ export const modelSpecSchema = z.object({
 
 export type ModelSpec = z.infer<typeof modelSpecSchema>;
 
+export const extractionConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  auto_select: z.boolean().default(true),
+  cache: z.boolean().default(true),
+  output_dir: z.string().default('sources/extracted'),
+  skills: z.record(z.string(), z.string()).default({}),
+  skill_overrides: z.record(z.string(), z.string()).default({}),
+  model: modelSpecSchema.optional(),
+  max_steps: z.number().int().positive().default(15),
+  bash_timeout_ms: z.number().int().positive().default(120_000),
+  trust_project_skills: z.boolean().default(false),
+  fast_path: z.boolean().default(true),
+});
+
+export type ExtractionConfig = z.infer<typeof extractionConfigSchema>;
+
 export const vaultConfigSchema = z.object({
   name: z.string(),
   description: z.string().default(''),
@@ -41,6 +57,18 @@ export const vaultConfigSchema = z.object({
   provenance: z.object({
     enabled: z.boolean().default(false),
     track_source_hash: z.boolean().default(false),
+  }),
+  extraction: extractionConfigSchema.default({
+    enabled: true,
+    auto_select: true,
+    cache: true,
+    output_dir: 'sources/extracted',
+    skills: {},
+    skill_overrides: {},
+    max_steps: 15,
+    bash_timeout_ms: 120_000,
+    trust_project_skills: false,
+    fast_path: true,
   }),
 });
 
@@ -132,6 +160,18 @@ export function createDefaultVaultConfig(
     git: { enabled: true, auto_commit: true, draft_branch: true },
     search: { strategy: 'auto', hybrid_threshold_pages: 200 },
     provenance: { enabled: false, track_source_hash: false },
+    extraction: {
+      enabled: true,
+      auto_select: true,
+      cache: true,
+      output_dir: 'sources/extracted',
+      skills: {},
+      skill_overrides: {},
+      max_steps: 15,
+      bash_timeout_ms: 120_000,
+      trust_project_skills: false,
+      fast_path: true,
+    },
     ...overrides,
   });
 }

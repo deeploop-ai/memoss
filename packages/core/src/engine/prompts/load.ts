@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export type PromptName = 'ingest' | 'query' | 'lint';
+export type PromptName = 'ingest' | 'query' | 'lint' | 'extract';
 
 const PROMPTS_DIR = dirname(fileURLToPath(import.meta.url));
 const cache = new Map<PromptName, string>();

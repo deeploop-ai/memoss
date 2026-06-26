@@ -8,6 +8,8 @@ import { rejectCommand } from './commands/reject.js';
 import { statusCommand } from './commands/status.js';
 import { graphCommand } from './commands/graph.js';
 import { mcpCommand } from './commands/mcp.js';
+import { extractCommand } from './commands/extract.js';
+import { skillCommand } from './commands/skill.js';
 import { CLI_VERSION } from './version.js';
 
 export const mainCommand = defineCommand({
@@ -26,5 +28,7 @@ export const mainCommand = defineCommand({
     status: statusCommand,
     graph: graphCommand,
     mcp: mcpCommand,
+    extract: extractCommand,
+    skill: skillCommand,
   },
 });

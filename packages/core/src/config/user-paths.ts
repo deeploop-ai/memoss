@@ -15,3 +15,13 @@ export function getUserConfigDir(): string {
 export function getUserConfigPath(): string {
   return join(getUserConfigDir(), 'config.yaml');
 }
+
+/** User-level Memoss skills (`~/.memoss/skills/`). */
+export function getUserMemossSkillsDir(): string {
+  return join(getUserConfigDir(), 'skills');
+}
+
+/** User-level canonical agent skills (`~/.agents/skills/`). */
+export function getUserAgentsSkillsDir(): string {
+  return join(homedir(), '.agents', 'skills');
+}

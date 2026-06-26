@@ -32,6 +32,7 @@ describe('resolveMcpToolNames', () => {
     expect(resolveMcpToolNames(['agent'])).toEqual([
       'run_query',
       'run_ingest',
+      'run_extract',
       'run_lint',
     ]);
   });

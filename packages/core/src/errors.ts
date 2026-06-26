@@ -7,7 +7,9 @@ export type ErrorCode =
   | 'GIT_ERROR'
   | 'FETCH_ERROR'
   | 'SOURCE_ERROR'
-  | 'AGENT_INCOMPLETE';
+  | 'AGENT_INCOMPLETE'
+  | 'EXTRACT_ERROR'
+  | 'SKILL_ERROR';
 
 export class MemossError extends Error {
   constructor(

@@ -133,6 +133,7 @@ describe('runIngest', () => {
       vaultRoot,
       source: 'https://example.com/article',
       kind: 'web',
+      extract: false,
     });
 
     expect(result.status).toBe('complete');

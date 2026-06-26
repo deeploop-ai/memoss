@@ -67,6 +67,20 @@ export const runIngestSchema = z.object({
   source: z.string().describe('Source URI, path, or URL to ingest'),
   kind: z.enum(['auto', 'file', 'web', 'github']).optional().describe('Source adapter kind'),
   noDraft: z.boolean().optional().describe('Write directly to the current branch'),
+  skill: z.string().optional().describe('Extraction skill name'),
+  extract: z
+    .union([z.boolean(), z.literal('auto')])
+    .optional()
+    .describe('Extraction mode; default auto'),
+  noExtract: z.boolean().optional().describe('Skip extraction before ingest'),
+  noCache: z.boolean().optional().describe('Bypass extract cache during ingest'),
+});
+
+export const runExtractSchema = z.object({
+  source: z.string().describe('Source URI, path, or URL to extract'),
+  kind: z.enum(['auto', 'file', 'web', 'github']).optional().describe('Source kind hint'),
+  skill: z.string().optional().describe('Extraction skill name'),
+  noCache: z.boolean().optional().describe('Bypass extract cache'),
 });
 
 export const runQuerySchema = z.object({

@@ -7,6 +7,7 @@ import {
   getToolInputSchema,
   pathSchema,
   runIngestSchema,
+  runExtractSchema,
   runQuerySchema,
 } from '@memoss/core';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -69,8 +70,8 @@ function createVault(): string {
 
 describe('MCP tool inventory', () => {
   it('exposes all core tools plus runners', () => {
-    expect(MCP_TOOL_NAMES).toHaveLength(TOOL_NAMES.length + 3);
-    expect(MCP_TOOL_NAMES).toContain('run_ingest');
+    expect(MCP_TOOL_NAMES).toHaveLength(TOOL_NAMES.length + 4);
+    expect(MCP_TOOL_NAMES).toContain('run_extract');
     expect(MCP_TOOL_NAMES).toContain('read_page');
   });
 
@@ -87,6 +88,9 @@ describe('MCP tool inventory', () => {
       runIngestSchema.parse({ source: 'https://example.com', kind: 'web' }),
     ).not.toThrow();
     expect(() => runQuerySchema.parse({ question: 'What is Alpha?' })).not.toThrow();
+    expect(() =>
+      runExtractSchema.parse({ source: 'https://example.com/article' }),
+    ).not.toThrow();
     expect(() => pathSchema.parse({})).toThrow();
   });
 });
@@ -111,11 +115,12 @@ describe('registerMemossTools', () => {
 
     registerMemossTools(mockServer, ctx, {
       runIngest: async () => ({ ok: true }),
+      runExtract: async () => ({ ok: true }),
       runQuery: async () => ({ answer: 'test' }),
       runLint: async () => ({ issues: [] }),
     });
 
-    expect(mockServer.registerTool).toHaveBeenCalledTimes(3);
+    expect(mockServer.registerTool).toHaveBeenCalledTimes(4);
     expect(handlers.has('run_query')).toBe(true);
     expect(handlers.has('read_page')).toBe(false);
   });
@@ -142,6 +147,7 @@ describe('registerMemossTools', () => {
       ctx,
       {
         runIngest: async () => ({ ok: true }),
+        runExtract: async () => ({ ok: true }),
         runQuery: async () => ({ answer: 'test' }),
         runLint: async () => ({ issues: [] }),
       },
