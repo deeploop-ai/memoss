@@ -4,6 +4,7 @@ import {
   getToolInputSchema,
   runIngest,
   runIngestSchema,
+  runIngestStatusSchema,
   runExtract,
   runExtractSchema,
   runLint,
@@ -20,10 +21,16 @@ import {
   type McpCapability,
   resolveMcpToolNames,
 } from './capabilities.js';
+import {
+  createMcpIngestJob,
+  readMcpJob,
+  updateMcpJob,
+} from './mcp-jobs.js';
 import { MCP_SERVER_VERSION } from './version.js';
 
 export const RUNNER_TOOL_NAMES = [
   'run_ingest',
+  'run_ingest_status',
   'run_extract',
   'run_query',
   'run_lint',
@@ -62,6 +69,51 @@ function formatToolError(message: string): {
   };
 }
 
+function createIngestRunOptions(
+  vaultRoot: string,
+  args: z.infer<typeof runIngestSchema>,
+) {
+  return {
+    vaultRoot,
+    source: args.source,
+    kind: args.kind,
+    noDraft: args.noDraft,
+    skill: args.skill,
+    extract: args.noExtract === true ? false : (args.extract ?? 'auto'),
+    noCache: args.noCache,
+  };
+}
+
+function startAsyncIngest(
+  vaultRoot: string,
+  args: z.infer<typeof runIngestSchema>,
+): {
+  jobId: string;
+  status: 'pending';
+  message: string;
+} {
+  const job = createMcpIngestJob(vaultRoot, args);
+  void (async () => {
+    updateMcpJob(vaultRoot, job.id, { status: 'running' });
+    try {
+      const result = await runIngest(createIngestRunOptions(vaultRoot, args));
+      updateMcpJob(vaultRoot, job.id, { status: 'complete', result });
+    } catch (error) {
+      updateMcpJob(vaultRoot, job.id, {
+        status: 'failed',
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  })();
+
+  return {
+    jobId: job.id,
+    status: 'pending',
+    message:
+      'Ingest started in background. Poll run_ingest_status with jobId until complete or failed.',
+  };
+}
+
 async function executeRegistryTool(
   registry: ToolRegistry,
   name: ToolName,
@@ -88,6 +140,9 @@ export function registerMemossTools(
   ctx: MemossMcpContext,
   handlers: {
     runIngest: (args: z.infer<typeof runIngestSchema>) => Promise<unknown>;
+    runIngestStatus: (
+      args: z.infer<typeof runIngestStatusSchema>,
+    ) => Promise<unknown>;
     runExtract: (args: z.infer<typeof runExtractSchema>) => Promise<unknown>;
     runQuery: (args: z.infer<typeof runQuerySchema>) => Promise<unknown>;
     runLint: (args: z.infer<typeof runLintSchema>) => Promise<unknown>;
@@ -116,10 +171,22 @@ export function registerMemossTools(
     server.registerTool(
       'run_ingest',
       {
-        description: 'Run the ingest agent on a source',
+        description:
+          'Run the ingest agent on a source. Defaults to async (returns jobId); set async:false to block. Poll run_ingest_status for results.',
         inputSchema: runIngestSchema,
       },
       async (args) => formatToolResult(await handlers.runIngest(args)),
+    );
+  }
+
+  if (enabled.has('run_ingest_status')) {
+    server.registerTool(
+      'run_ingest_status',
+      {
+        description: 'Poll status of an async run_ingest job',
+        inputSchema: runIngestStatusSchema,
+      },
+      async (args) => formatToolResult(await handlers.runIngestStatus(args)),
     );
   }
 
@@ -182,19 +249,38 @@ export function createMemossMcpServer(
     server,
     ctx,
     {
-      runIngest: (args) =>
-        runIngest({
-          vaultRoot,
-          source: args.source,
-          kind: args.kind,
-          noDraft: args.noDraft,
-          skill: args.skill,
-          extract:
-            args.noExtract === true
-              ? false
-              : (args.extract ?? 'auto'),
-          noCache: args.noCache,
-        }),
+      runIngest: async (args) => {
+        if (args.async !== false) {
+          return startAsyncIngest(vaultRoot, args);
+        }
+        return runIngest(createIngestRunOptions(vaultRoot, args));
+      },
+      runIngestStatus: async (args) => {
+        const job = readMcpJob(vaultRoot, args.jobId);
+        if (!job) {
+          throw new Error(`Ingest job not found: ${args.jobId}`);
+        }
+        if (job.status === 'complete') {
+          return {
+            jobId: job.id,
+            status: job.status,
+            result: job.result,
+          };
+        }
+        if (job.status === 'failed') {
+          return {
+            jobId: job.id,
+            status: job.status,
+            error: job.error,
+          };
+        }
+        return {
+          jobId: job.id,
+          status: job.status,
+          createdAt: job.createdAt,
+          updatedAt: job.updatedAt,
+        };
+      },
       runExtract: (args) =>
         runExtract({
           vaultRoot,

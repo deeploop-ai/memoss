@@ -74,6 +74,16 @@ export const runIngestSchema = z.object({
     .describe('Extraction mode; default auto'),
   noExtract: z.boolean().optional().describe('Skip extraction before ingest'),
   noCache: z.boolean().optional().describe('Bypass extract cache during ingest'),
+  async: z
+    .boolean()
+    .optional()
+    .describe(
+      'When true, return immediately with jobId (MCP: poll run_ingest_status)',
+    ),
+});
+
+export const runIngestStatusSchema = z.object({
+  jobId: z.string().describe('Job ID returned by async run_ingest'),
 });
 
 export const runExtractSchema = z.object({

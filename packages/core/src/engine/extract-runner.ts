@@ -12,6 +12,10 @@ import {
 } from '../skills/extract-cache.js';
 import { findFastPathScript, runFastPathExtract } from '../skills/fast-path.js';
 import { runFallbackExtract } from '../skills/fallback-extract.js';
+import {
+  filterExtractRelevantSkills,
+  hasExtractRelevantSkills,
+} from '../skills/extract-relevant.js';
 import { resolveExtractRoute } from '../skills/router.js';
 import { contentHash, sourceToSlug } from '../skills/slug.js';
 import type { ExtractMeta } from '../skills/types.js';
@@ -194,6 +198,8 @@ export async function runExtract(
     opts.onWarning?.(warning);
   }
 
+  const skillsForExtract = filterExtractRelevantSkills(skills, config);
+
   const selectedSkill =
     route.mode === 'skill' ? route.skillName : undefined;
   const skillRecord = selectedSkill ? skills.get(selectedSkill) : undefined;
@@ -234,6 +240,35 @@ export async function runExtract(
       noCache: opts.noCache,
     });
   };
+
+  if (
+    route.mode === 'auto' &&
+    !hasExtractRelevantSkills(skills, config) &&
+    canFallback(extractKind)
+  ) {
+    opts.onWarning?.(
+      'No extraction skills available; using built-in Readability fallback.',
+    );
+    const fallback = await runFallbackExtract({
+      source: opts.source,
+      extractKind,
+      outputPath: markdownPath,
+      metaPath,
+    });
+    persist(fallback.meta);
+    return {
+      status: 'complete',
+      source: opts.source,
+      outputPath: fallback.outputPath,
+      extractKind,
+      route: { mode: 'fallback', source: 'fallback' },
+      meta: fallback.meta,
+      text: `Fallback extraction wrote ${relativeMarkdown}`,
+      steps: [],
+      finishReason: 'stop',
+      totalSteps: 0,
+    };
+  }
 
   if (route.mode === 'fallback') {
     const fallback = await runFallbackExtract({
@@ -332,7 +367,9 @@ export async function runExtract(
     }
   }
 
-  const catalog = buildSkillCatalog(skills);
+  const catalog = buildSkillCatalog(
+    route.mode === 'auto' ? skillsForExtract : skills,
+  );
   const promptCtx = createPromptContext(opts.vaultRoot, config);
   const system = buildSystemPrompt({
     ...promptCtx,
@@ -352,7 +389,7 @@ export async function runExtract(
   const extractCtx: ExtractToolContext = {
     vaultRoot: opts.vaultRoot,
     config,
-    skills,
+    skills: route.mode === 'auto' ? skillsForExtract : skills,
     outputDir,
     sourceUri: opts.source,
   };

@@ -43,6 +43,7 @@ export {
   readIndexSchema,
   readSourceSchema,
   runIngestSchema,
+  runIngestStatusSchema,
   runExtractSchema,
   runLintSchema,
   runQuerySchema,
