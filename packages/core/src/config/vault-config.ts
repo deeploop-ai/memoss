@@ -1,8 +1,10 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 import { MemossError } from '../errors.js';
+import { deepMergeRecord } from './merge.js';
+import { getUserConfigPath } from './user-paths.js';
 
 export const modelSpecSchema = z.object({
   provider: z.enum(['anthropic', 'openai']),
@@ -44,16 +46,52 @@ export const vaultConfigSchema = z.object({
 
 export type VaultConfig = z.infer<typeof vaultConfigSchema>;
 
+/** Shared user-level defaults; all fields optional. */
+export const userConfigSchema = vaultConfigSchema.partial();
+
+export type UserConfig = z.infer<typeof userConfigSchema>;
+
 export function parseVaultConfig(data: unknown): VaultConfig {
   return vaultConfigSchema.parse(data);
 }
 
-export function loadVaultConfig(vaultRoot: string): VaultConfig {
-  const configPath = join(vaultRoot, '.memoss', 'config.yaml');
+export function parseUserConfig(data: unknown): UserConfig {
+  return userConfigSchema.parse(data);
+}
+
+export function loadUserConfig(): UserConfig | undefined {
+  const configPath = getUserConfigPath();
+  if (!existsSync(configPath)) {
+    return undefined;
+  }
+
   try {
     const raw = parseYaml(readFileSync(configPath, 'utf8'));
-    return parseVaultConfig(raw);
+    return parseUserConfig(raw);
   } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Unknown user config error';
+    throw new MemossError(
+      'VAULT_NOT_FOUND',
+      `Failed to load user config at ${configPath}: ${message}`,
+    );
+  }
+}
+
+export function loadVaultConfig(vaultRoot: string): VaultConfig {
+  const userDefaults = loadUserConfig();
+  const configPath = join(vaultRoot, '.memoss', 'config.yaml');
+
+  let vaultRaw: Record<string, unknown> | undefined;
+  try {
+    vaultRaw = parseYaml(readFileSync(configPath, 'utf8')) as Record<
+      string,
+      unknown
+    >;
+  } catch (error) {
+    if (userDefaults) {
+      return mergeVaultConfigLayers(userDefaults);
+    }
     const message =
       error instanceof Error ? error.message : 'Unknown vault config error';
     throw new MemossError(
@@ -61,6 +99,24 @@ export function loadVaultConfig(vaultRoot: string): VaultConfig {
       `Failed to load vault config at ${configPath}: ${message}`,
     );
   }
+
+  return mergeVaultConfigLayers(userDefaults, vaultRaw);
+}
+
+function mergeVaultConfigLayers(
+  userDefaults?: UserConfig,
+  vaultOverrides?: Record<string, unknown>,
+): VaultConfig {
+  let merged = createDefaultVaultConfig() as Record<string, unknown>;
+
+  if (userDefaults) {
+    merged = deepMergeRecord(merged, userDefaults as Record<string, unknown>);
+  }
+  if (vaultOverrides) {
+    merged = deepMergeRecord(merged, vaultOverrides);
+  }
+
+  return parseVaultConfig(merged);
 }
 
 export function createDefaultVaultConfig(

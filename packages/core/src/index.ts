@@ -49,8 +49,26 @@ export {
   writeIndexSchema,
   writePageSchema,
 } from './tools/tool-schemas.js';
-export { loadVaultConfig, parseVaultConfig, createDefaultVaultConfig, type VaultConfig, type ModelSpec } from './config/vault-config.js';
-export { discoverVaultPath, isVaultRoot } from './config/vault-discovery.js';
+export {
+  loadVaultConfig,
+  loadUserConfig,
+  parseVaultConfig,
+  parseUserConfig,
+  createDefaultVaultConfig,
+  type VaultConfig,
+  type UserConfig,
+  type ModelSpec,
+} from './config/vault-config.js';
+export {
+  discoverVaultPath,
+  findVaultInAncestors,
+  isVaultRoot,
+} from './config/vault-discovery.js';
+export {
+  getDefaultVaultPath,
+  getUserConfigDir,
+  getUserConfigPath,
+} from './config/user-paths.js';
 export {
   runIngest,
   runQuery,

@@ -1,7 +1,7 @@
 import { defineCommand } from 'citty';
 import { consola } from 'consola';
 import { resolve } from 'pathe';
-import { SimpleGitAdapter } from '@memoss/core';
+import { getDefaultVaultPath, SimpleGitAdapter } from '@memoss/core';
 import { basename } from 'node:path';
 import { initVaultFromSchemaPack, type SchemaPackName } from '../utils/schema-pack.js';
 
@@ -13,7 +13,7 @@ export const initCommand = defineCommand({
   args: {
     path: {
       type: 'positional',
-      description: 'Target directory (default: current directory)',
+      description: 'Target directory (default: ~/.memoss-vault)',
       required: false,
     },
     pack: {
@@ -32,7 +32,7 @@ export const initCommand = defineCommand({
     },
   },
   async run({ args }) {
-    const targetPath = resolve(args.path ?? '.');
+    const targetPath = resolve(args.path ?? getDefaultVaultPath());
     const pack = args.pack as SchemaPackName;
     if (pack !== 'research' && pack !== 'personal') {
       throw new Error(`Unsupported schema pack "${pack}". Use research or personal.`);
