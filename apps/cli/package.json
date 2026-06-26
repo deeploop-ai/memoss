@@ -1,6 +1,6 @@
 {
   "name": "@memoss/cli",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Agent-native knowledge runtime - ingest, query, and lint your OKF knowledge base from the CLI.",
   "license": "Apache-2.0",
   "publishConfig": {
