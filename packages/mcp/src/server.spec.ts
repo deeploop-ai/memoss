@@ -11,11 +11,12 @@ import {
 } from '@memoss/core';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import {
-  MCP_TOOL_NAMES,
   createMemossMcpContext,
   createMemossMcpServer,
+  MCP_TOOL_NAMES,
   registerMemossTools,
 } from './mcp-tools.js';
+import { resolveMcpToolNames } from './capabilities.js';
 
 const tempDirs: string[] = [];
 
@@ -91,7 +92,7 @@ describe('MCP tool inventory', () => {
 });
 
 describe('registerMemossTools', () => {
-  it('registers handlers that execute core tools', async () => {
+  it('registers only agent tools by default', async () => {
     const vaultRoot = createVault();
     const ctx = createMemossMcpContext(vaultRoot);
     const handlers = new Map<string, (args: Record<string, unknown>) => Promise<unknown>>();
@@ -114,7 +115,42 @@ describe('registerMemossTools', () => {
       runLint: async () => ({ issues: [] }),
     });
 
-    expect(mockServer.registerTool).toHaveBeenCalledTimes(MCP_TOOL_NAMES.length);
+    expect(mockServer.registerTool).toHaveBeenCalledTimes(3);
+    expect(handlers.has('run_query')).toBe(true);
+    expect(handlers.has('read_page')).toBe(false);
+  });
+
+  it('registers read tools when read capability is enabled', async () => {
+    const vaultRoot = createVault();
+    const ctx = createMemossMcpContext(vaultRoot);
+    const handlers = new Map<string, (args: Record<string, unknown>) => Promise<unknown>>();
+
+    const mockServer = {
+      registerTool: vi.fn(
+        (
+          name: string,
+          _config: unknown,
+          handler: (args: Record<string, unknown>) => Promise<unknown>,
+        ) => {
+          handlers.set(name, handler);
+        },
+      ),
+    } as unknown as McpServer;
+
+    registerMemossTools(
+      mockServer,
+      ctx,
+      {
+        runIngest: async () => ({ ok: true }),
+        runQuery: async () => ({ answer: 'test' }),
+        runLint: async () => ({ issues: [] }),
+      },
+      ['agent', 'read'],
+    );
+
+    expect(mockServer.registerTool).toHaveBeenCalledTimes(
+      resolveMcpToolNames(['agent', 'read']).length,
+    );
 
     const readPage = handlers.get('read_page');
     expect(readPage).toBeDefined();

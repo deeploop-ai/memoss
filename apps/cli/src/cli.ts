@@ -1,5 +1,4 @@
 import { defineCommand } from 'citty';
-import { CORE_VERSION } from '@memoss/core';
 import { initCommand } from './commands/init.js';
 import { ingestCommand } from './commands/ingest.js';
 import { queryCommand } from './commands/query.js';
@@ -9,11 +8,12 @@ import { rejectCommand } from './commands/reject.js';
 import { statusCommand } from './commands/status.js';
 import { graphCommand } from './commands/graph.js';
 import { mcpCommand } from './commands/mcp.js';
+import { CLI_VERSION } from './version.js';
 
 export const mainCommand = defineCommand({
   meta: {
     name: 'memoss',
-    version: CORE_VERSION,
+    version: CLI_VERSION,
     description: 'Agent-native knowledge runtime',
   },
   subCommands: {

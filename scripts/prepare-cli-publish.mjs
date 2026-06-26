@@ -48,7 +48,7 @@ const prepared = {
   bugs: { url: 'https://github.com/deeploop-ai/memoss/issues' },
   keywords: ['memoss', 'knowledge-base', 'okf', 'cli', 'mcp', 'ai', 'wiki'],
   bin: { memoss: 'main.js' },
-  files: ['main.js', 'cli.js', 'exit-codes.js', 'commands', 'utils'],
+  files: ['main.js', 'cli.js', 'version.js', 'exit-codes.js', 'commands', 'utils'],
   dependencies: {
     '@memoss/core': `^${corePkg.version}`,
     '@memoss/mcp-server': `^${mcpPkg.version}`,

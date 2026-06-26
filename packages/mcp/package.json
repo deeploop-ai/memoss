@@ -1,6 +1,6 @@
 {
   "name": "@memoss/mcp-server",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "MCP server exposing Memoss core tools and agent runners.",
   "license": "Apache-2.0",
   "repository": {

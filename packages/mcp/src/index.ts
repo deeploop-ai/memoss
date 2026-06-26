@@ -8,10 +8,19 @@ export {
   MCP_TOOL_NAMES,
   RUNNER_TOOL_NAMES,
   type McpToolName,
+  type CreateMemossMcpServerOptions,
 } from './mcp-tools.js';
-
-/** MCP server entry (M6). */
-export const MCP_SERVER_VERSION = '0.0.1';
+export {
+  parseMcpCapabilities,
+  resolveMcpToolNames,
+  DEFAULT_MCP_CAPABILITIES,
+  MCP_CAPABILITY_LEVELS,
+  AGENT_TOOL_NAMES,
+  READ_TOOL_NAMES,
+  WRITE_TOOL_NAMES,
+  type McpCapability,
+} from './capabilities.js';
+export { MCP_SERVER_VERSION } from './version.js';
 
 export function getCoreVersion(): string {
   return CORE_VERSION;

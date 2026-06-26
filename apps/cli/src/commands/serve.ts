@@ -1,6 +1,5 @@
 import { defineCommand } from 'citty';
-import { consola } from 'consola';
-import { startMcpServer } from '@memoss/mcp-server';
+import { parseMcpCapabilities, startMcpServer } from '@memoss/mcp-server';
 import { resolveVaultRoot } from '../utils/vault.js';
 
 export const serveCommand = defineCommand({
@@ -14,10 +13,18 @@ export const serveCommand = defineCommand({
       alias: 'C',
       description: 'Vault root path',
     },
+    capabilities: {
+      type: 'string',
+      description:
+        'Comma-separated tool levels: agent, read, write (default: agent). Use "full" for all.',
+      default: 'agent',
+    },
   },
   async run({ args }) {
     const vaultRoot = resolveVaultRoot(args);
-    consola.info(`Starting MCP server for ${vaultRoot}`);
-    await startMcpServer({ vaultRoot });
+    const capabilities = parseMcpCapabilities(
+      args.capabilities ?? process.env.MEMOSS_MCP_CAPABILITIES,
+    );
+    await startMcpServer({ vaultRoot, capabilities });
   },
 });
