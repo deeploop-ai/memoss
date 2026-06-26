@@ -8,7 +8,7 @@ import { approveCommand } from './commands/approve.js';
 import { rejectCommand } from './commands/reject.js';
 import { statusCommand } from './commands/status.js';
 import { viewCommand } from './commands/view.js';
-import { serveCommand } from './commands/serve.js';
+import { mcpCommand } from './commands/mcp.js';
 
 export const mainCommand = defineCommand({
   meta: {
@@ -25,6 +25,6 @@ export const mainCommand = defineCommand({
     reject: rejectCommand,
     status: statusCommand,
     view: viewCommand,
-    serve: serveCommand,
+    mcp: mcpCommand,
   },
 });
