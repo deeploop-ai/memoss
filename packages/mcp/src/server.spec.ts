@@ -15,6 +15,8 @@ import {
   createMemossMcpContext,
   createMemossMcpServer,
   MCP_TOOL_NAMES,
+  RUN_EXTRACT_TOOL_DESCRIPTION,
+  RUN_INGEST_TOOL_DESCRIPTION,
   registerMemossTools,
 } from './mcp-tools.js';
 import { resolveMcpToolNames } from './capabilities.js';
@@ -165,6 +167,43 @@ describe('registerMemossTools', () => {
     const result = await readPage!({ path: 'topics/alpha.md' });
     const text = result.content[0]?.text;
     expect(text).toContain('"title": "Alpha"');
+  });
+
+  it('documents ingest vs extract for MCP clients', () => {
+    const vaultRoot = createVault();
+    const ctx = createMemossMcpContext(vaultRoot);
+    const toolConfigs = new Map<string, { description: string }>();
+
+    const mockServer = {
+      registerTool: vi.fn(
+        (
+          name: string,
+          config: { description: string },
+          _handler: (args: Record<string, unknown>) => Promise<unknown>,
+        ) => {
+          toolConfigs.set(name, config);
+        },
+      ),
+    } as unknown as McpServer;
+
+    registerMemossTools(mockServer, ctx, {
+      runIngest: async () => ({ ok: true }),
+      runIngestStatus: async () => ({ status: 'complete' }),
+      runExtract: async () => ({ ok: true }),
+      runQuery: async () => ({ answer: 'test' }),
+      runLint: async () => ({ issues: [] }),
+    });
+
+    expect(toolConfigs.get('run_ingest')?.description).toBe(
+      RUN_INGEST_TOOL_DESCRIPTION,
+    );
+    expect(toolConfigs.get('run_extract')?.description).toBe(
+      RUN_EXTRACT_TOOL_DESCRIPTION,
+    );
+    expect(RUN_INGEST_TOOL_DESCRIPTION).toMatch(/knowledge base/i);
+    expect(RUN_INGEST_TOOL_DESCRIPTION).toMatch(/run_extract/i);
+    expect(RUN_EXTRACT_TOOL_DESCRIPTION).toMatch(/Does NOT/i);
+    expect(RUN_EXTRACT_TOOL_DESCRIPTION).toMatch(/run_ingest/i);
   });
 });
 

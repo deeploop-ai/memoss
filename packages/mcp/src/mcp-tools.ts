@@ -43,6 +43,13 @@ export const MCP_TOOL_NAMES: McpToolName[] = [
   ...RUNNER_TOOL_NAMES,
 ];
 
+/** Shown to MCP clients for tool routing (e.g. Cherry Studio). */
+export const RUN_INGEST_TOOL_DESCRIPTION =
+  'Add a URL, file, or other source to the Memoss knowledge base: extract content when needed, then analyze and update wiki pages, indexes, and the activity log. Prefer this over run_extract when the user wants to ingest, save, or add content to the KB. Defaults to async (returns jobId); set async:false to block. Poll run_ingest_status for results.';
+
+export const RUN_EXTRACT_TOOL_DESCRIPTION =
+  'Extract-only: convert a source to markdown under sources/extracted/ using agent skills. Does NOT add content to the knowledge base or update wiki pages. Use run_ingest when the user wants to save or add a URL/file to the KB.';
+
 export interface MemossMcpContext {
   vaultRoot: string;
   registry: ToolRegistry;
@@ -171,8 +178,7 @@ export function registerMemossTools(
     server.registerTool(
       'run_ingest',
       {
-        description:
-          'Run the ingest agent on a source. Defaults to async (returns jobId); set async:false to block. Poll run_ingest_status for results.',
+        description: RUN_INGEST_TOOL_DESCRIPTION,
         inputSchema: runIngestSchema,
       },
       async (args) => formatToolResult(await handlers.runIngest(args)),
@@ -194,7 +200,7 @@ export function registerMemossTools(
     server.registerTool(
       'run_extract',
       {
-        description: 'Extract a source to markdown using agent skills',
+        description: RUN_EXTRACT_TOOL_DESCRIPTION,
         inputSchema: runExtractSchema,
       },
       async (args) => formatToolResult(await handlers.runExtract(args)),

@@ -87,6 +87,7 @@ export {
   pickTools,
   type AgentResult,
   type IngestRunOptions,
+  type IngestRunResult,
   type ExtractRunOptions,
   type ExtractRunResult,
   type QueryRunOptions,

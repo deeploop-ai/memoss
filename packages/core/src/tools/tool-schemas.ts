@@ -64,7 +64,11 @@ export const gitMergeSchema = z.object({
 });
 
 export const runIngestSchema = z.object({
-  source: z.string().describe('Source URI, path, or URL to ingest'),
+  source: z
+    .string()
+    .describe(
+      'Source URI, path, or URL to add to the knowledge base (extract + ingest pipeline)',
+    ),
   kind: z.enum(['auto', 'file', 'web', 'github']).optional().describe('Source adapter kind'),
   noDraft: z.boolean().optional().describe('Write directly to the current branch'),
   skill: z.string().optional().describe('Extraction skill name'),
@@ -87,7 +91,11 @@ export const runIngestStatusSchema = z.object({
 });
 
 export const runExtractSchema = z.object({
-  source: z.string().describe('Source URI, path, or URL to extract'),
+  source: z
+    .string()
+    .describe(
+      'Source URI, path, or URL to extract to markdown only (does not update the knowledge base)',
+    ),
   kind: z.enum(['auto', 'file', 'web', 'github']).optional().describe('Source kind hint'),
   skill: z.string().optional().describe('Extraction skill name'),
   noCache: z.boolean().optional().describe('Bypass extract cache'),
