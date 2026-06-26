@@ -1,6 +1,6 @@
 {
   "name": "@memoss/core",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "OKF document model, agent engine, tools, and policies for Memoss.",
   "license": "Apache-2.0",
   "repository": {
