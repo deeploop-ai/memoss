@@ -106,6 +106,19 @@ export { computeHealthScore, summarizeLintIssues } from './lint/score.js';
 export { buildLintReport, writeLintReport, type LintReport } from './lint/report.js';
 export { runVaultLintChecks } from './lint/vault-lint.js';
 export { runMigrate, type MigrateOptions, type MigrateReport } from './migrate/runner.js';
+export {
+  discoverRebuildSources,
+  type RebuildSource,
+  type RebuildSourceOrigin,
+} from './rebuild/discover-sources.js';
+export { resetWikiContent } from './rebuild/reset-wiki.js';
+export {
+  runRebuild,
+  type RebuildOptions,
+  type RebuildReport,
+  type RebuildSourceResult,
+  type RebuildSourceStatus,
+} from './rebuild/runner.js';
 export { ShellSession, type ShellTaskProposal, type ShellTaskResult, type ShellSessionState, type ShellTaskType } from './shell/session.js';
 export { classifyIntentFastPath, isWriteTask, parseCrawlParams } from './shell/intent-fast-path.js';
 export {

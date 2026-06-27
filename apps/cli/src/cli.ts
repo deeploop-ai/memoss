@@ -11,6 +11,7 @@ import { mcpCommand } from './commands/mcp.js';
 import { extractCommand } from './commands/extract.js';
 import { skillCommand } from './commands/skill.js';
 import { migrateCommand } from './commands/migrate.js';
+import { rebuildCommand } from './commands/rebuild.js';
 import { runShellRepl } from './tui/shell-repl.js';
 import { CLI_VERSION } from './version.js';
 
@@ -44,6 +45,7 @@ export function shouldLaunchShell(rawArgs: string[]): boolean {
     'extract',
     'skill',
     'migrate',
+    'rebuild',
   ]);
   const positional = rawArgs.filter(
     (arg) => !arg.startsWith('-') && arg !== 'memoss',
@@ -81,6 +83,7 @@ export const mainCommand = defineCommand({
     extract: extractCommand,
     skill: skillCommand,
     migrate: migrateCommand,
+    rebuild: rebuildCommand,
   },
 });
 
