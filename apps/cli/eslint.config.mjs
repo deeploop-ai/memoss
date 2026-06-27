@@ -4,7 +4,7 @@ import jsoncEslintParser from 'jsonc-eslint-parser';
 export default [
   ...baseConfig,
   {
-    files: ['**/*.ts', '**/*.js'],
+    files: ['**/*.ts', '**/*.tsx', '**/*.js'],
     rules: {},
   },
   {
@@ -17,7 +17,14 @@ export default [
         'error',
         {
           ignoredFiles: ['{projectRoot}/eslint.config.{js,cjs,mjs,ts,cts,mts}'],
-          ignoredDependencies: ['@memoss/core', 'vite'],
+          ignoredDependencies: [
+            '@memoss/core',
+            'vite',
+            'react',
+            'ink',
+            'ink-text-input',
+            'ink-spinner',
+          ],
         },
       ],
     },

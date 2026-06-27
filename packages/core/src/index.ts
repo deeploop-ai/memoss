@@ -106,7 +106,7 @@ export { computeHealthScore, summarizeLintIssues } from './lint/score.js';
 export { buildLintReport, writeLintReport, type LintReport } from './lint/report.js';
 export { runVaultLintChecks } from './lint/vault-lint.js';
 export { runMigrate, type MigrateOptions, type MigrateReport } from './migrate/runner.js';
-export { ShellSession, type ShellTaskProposal, type ShellTaskResult, type ShellSessionState } from './shell/session.js';
+export { ShellSession, type ShellTaskProposal, type ShellTaskResult, type ShellSessionState, type ShellTaskType } from './shell/session.js';
 export { classifyIntentFastPath, isWriteTask, parseCrawlParams } from './shell/intent-fast-path.js';
 export {
   extractVaultLinks,

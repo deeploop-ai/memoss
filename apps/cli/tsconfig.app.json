@@ -4,9 +4,10 @@
     "outDir": "dist",
     "types": ["node"],
     "rootDir": "src",
+    "jsx": "react-jsx",
     "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": [
     "eslint.config.js",
     "eslint.config.cjs",

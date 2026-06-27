@@ -20,6 +20,7 @@ export interface ExecuteShellTaskOptions {
   proposal: ShellTaskProposal;
   emphasis?: string;
   onStepFinish?: (step: AgentStepSummary) => void;
+  onTextDelta?: (delta: string) => void;
 }
 
 export interface ExecuteShellTaskOutcome {
@@ -100,22 +101,15 @@ export async function executeShellTask(
       const save = params.save === true;
       const format =
         params.format === 'comparison' ? 'comparison' : 'default';
-      let streamed = '';
       const query = await runQuery({
         vaultRoot,
         question,
         save,
         suggestSave: !save,
         format,
-        onTextDelta: (delta) => {
-          streamed += delta;
-          process.stdout.write(delta);
-        },
+        onTextDelta: opts.onTextDelta,
         onStepFinish: opts.onStepFinish,
       });
-      if (streamed && !streamed.endsWith('\n')) {
-        process.stdout.write('\n');
-      }
       return {
         result: {
           task: 'query',

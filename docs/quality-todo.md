@@ -32,6 +32,7 @@
 
 ### Shell / TUI
 
+- [x] Ink 完整 TUI（`apps/cli/src/tui/` —  transcript、确认门、流式 query）
 - [~] 流式输出（query step 文本 delta；非 token 级）
 - [x] 会话持久化到 `~/.memoss/sessions/<vault-hash>.json`（跨进程恢复）
 - [x] Obsidian / 浏览器一键打开引用页

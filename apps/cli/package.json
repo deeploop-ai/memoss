@@ -15,7 +15,15 @@
   "bugs": {
     "url": "https://github.com/deeploop-ai/memoss/issues"
   },
-  "keywords": ["memoss", "knowledge-base", "okf", "cli", "mcp", "ai", "wiki"],
+  "keywords": [
+    "memoss",
+    "knowledge-base",
+    "okf",
+    "cli",
+    "mcp",
+    "ai",
+    "wiki"
+  ],
   "engines": {
     "node": ">=20"
   },
@@ -28,10 +36,15 @@
     "@memoss/mcp-server": "workspace:^",
     "citty": "^0.2.2",
     "consola": "^3.4.2",
+    "ink": "^7.1.0",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^6.0.0",
     "open": "^11.0.0",
-    "pathe": "^2.0.3"
+    "pathe": "^2.0.3",
+    "react": "^19.2.7"
   },
   "devDependencies": {
+    "@types/react": "^19.2.17",
     "vite": "^8.0.0"
   },
   "nx": {
