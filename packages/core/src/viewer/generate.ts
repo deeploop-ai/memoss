@@ -10,6 +10,11 @@ function loadAsset(name: string): string {
   return readFileSync(join(ASSETS_DIR, name), 'utf8');
 }
 
+/** Escape JSON for safe embedding inside an HTML `<script>` block. */
+function embedJsonInScript(value: unknown): string {
+  return JSON.stringify(value).replace(/<\//g, '<\\/');
+}
+
 export interface GenerateGraphHtmlOptions {
   bundleRoot: string;
   outPath: string;
@@ -30,8 +35,8 @@ export function generateGraphHtml(opts: GenerateGraphHtmlOptions): GraphGenerati
   const html = template
     .replace('/*__VIZ_CSS__*/', css)
     .replace('/*__VIZ_JS__*/', js)
-    .replace('__BUNDLE_NAME__', JSON.stringify(name))
-    .replace('__BUNDLE_DATA__', JSON.stringify(graph));
+    .replace('__BUNDLE_NAME__', embedJsonInScript(name))
+    .replace('__BUNDLE_DATA__', embedJsonInScript(graph));
 
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, html, 'utf8');

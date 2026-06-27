@@ -80,6 +80,7 @@ export {
   resolveIngestSource,
   runQuery,
   runLint,
+  runValidate,
   runAgentLoop,
   resolveModel,
   parseModelOverride,
@@ -92,7 +93,11 @@ export {
   type ExtractRunResult,
   type QueryRunOptions,
   type LintRunOptions,
+  type LintRunResult,
+  type ValidateRunOptions,
+  type ValidateRunResult,
 } from './engine/index.js';
+export { checkSourceContent, type ContentHeuristicResult } from './validation/content-heuristics.js';
 export { discoverSkills } from './skills/discovery.js';
 export { buildSkillCatalog } from './skills/catalog.js';
 export { resolveExtractRoute } from './skills/router.js';

@@ -4,6 +4,7 @@ export const ExitCode = {
   RUNTIME_ERROR: 2,
   AGENT_INCOMPLETE: 3,
   LINT_ERRORS: 4,
+  INGEST_REJECTED: 5,
 } as const;
 
 export type ExitCodeValue = (typeof ExitCode)[keyof typeof ExitCode];

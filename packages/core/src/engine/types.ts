@@ -40,6 +40,27 @@ export interface RunnerBaseOptions {
   onStepFinish?: (step: AgentStepSummary) => void;
 }
 
+export interface ValidateRunOptions extends RunnerBaseOptions {
+  source: string;
+  kind?: SourceKind | 'auto';
+  originalSource?: string;
+  extracted?: boolean;
+}
+
+export type ValidationMethod = 'heuristic' | 'agent';
+
+export interface ValidateRunResult {
+  approved: boolean;
+  summary: string;
+  issues: string[];
+  method: ValidationMethod;
+  status: AgentStatus;
+  text: string;
+  steps: AgentStepSummary[];
+  finishReason: FinishReason;
+  totalSteps: number;
+}
+
 export interface IngestRunOptions extends RunnerBaseOptions {
   source: string;
   kind?: SourceKind | 'auto';
@@ -48,6 +69,7 @@ export interface IngestRunOptions extends RunnerBaseOptions {
   skill?: string;
   noExtract?: boolean;
   noCache?: boolean;
+  skipValidate?: boolean;
   onWarning?: (message: string) => void;
 }
 
@@ -84,9 +106,13 @@ export interface LintRunOptions extends RunnerBaseOptions {
   fix?: boolean;
 }
 
-export interface IngestRunResult extends AgentResult {
+export type IngestRunStatus = AgentStatus | 'rejected';
+
+export interface IngestRunResult extends Omit<AgentResult, 'status'> {
+  status: IngestRunStatus;
   draftBranch?: string;
   diff?: string;
+  validation?: ValidateRunResult;
 }
 
 export interface QueryRunResult extends AgentResult {

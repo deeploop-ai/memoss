@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -35,6 +35,29 @@ describe('generateGraphHtml', () => {
     for (const dir of tempDirs.splice(0)) {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  it('escapes </script> in embedded bundle JSON', () => {
+    const outDir = mkdtempSync(join(tmpdir(), 'memoss-viewer-'));
+    tempDirs.push(outDir);
+    const bundleRoot = join(outDir, 'bundle');
+    const conceptDir = join(bundleRoot, 'sources', 'extracted');
+    mkdirSync(conceptDir, { recursive: true });
+    writeFileSync(
+      join(conceptDir, 'html-page.md'),
+      '---\ntitle: HTML page\ntype: Source\n---\n<script>alert(1)</script>\n</script>\n',
+      'utf8',
+    );
+
+    const outPath = join(outDir, 'viz.html');
+    generateGraphHtml({ bundleRoot, outPath, bundleName: 'test' });
+
+    const html = readFileSync(outPath, 'utf8');
+    const match = html.match(/window\.BUNDLE = ([\s\S]+);\r?\n<\/script>/);
+    expect(match).not.toBeNull();
+    const bundle = JSON.parse(match![1]);
+    expect(bundle.bodies['sources/extracted/html-page']).toContain('</script>');
+    expect(match![1]).not.toContain('</script>');
   });
 
   it('writes a self-contained HTML file', () => {

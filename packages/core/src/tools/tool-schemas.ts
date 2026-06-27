@@ -78,6 +78,10 @@ export const runIngestSchema = z.object({
     .describe('Extraction mode; default auto'),
   noExtract: z.boolean().optional().describe('Skip extraction before ingest'),
   noCache: z.boolean().optional().describe('Bypass extract cache during ingest'),
+  skipValidate: z
+    .boolean()
+    .optional()
+    .describe('Skip pre-ingest content validation agent'),
   async: z
     .boolean()
     .optional()
