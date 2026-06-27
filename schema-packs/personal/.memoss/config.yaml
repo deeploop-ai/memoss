@@ -8,11 +8,23 @@ agent:
   default_model:
     provider: anthropic
     model: claude-sonnet-4-6
-  lightweight_model:
+  flash_model:
     provider: anthropic
     model: claude-haiku-4-5
   max_steps: 50
   temperature: 0.3
+
+policies:
+  augment:
+    preserve_headings: error
+    preserve_resource_field: error
+    body_shrink_action: warn
+  reference_mint:
+    gate_mode: warn
+  citation:
+    require_section: warn
+  provenance:
+    track_affects: true
 
 git:
   enabled: true
@@ -24,5 +36,9 @@ search:
   hybrid_threshold_pages: 200
 
 provenance:
-  enabled: false
-  track_source_hash: false
+  enabled: true
+  track_source_hash: true
+
+extraction:
+  enabled: true
+  auto_select: true

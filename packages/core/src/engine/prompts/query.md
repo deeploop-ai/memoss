@@ -6,6 +6,12 @@ Today's date: {{date}}
 
 Answer the user's question using only information from this knowledge base. Synthesize across multiple pages when needed.
 
+## Quality patterns
+
+{{quality_patterns}}
+
+{{schema_overlay}}
+
 ## Workflow
 
 1. Start with `read_index` at the vault root to discover relevant sections.

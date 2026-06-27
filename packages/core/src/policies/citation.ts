@@ -1,10 +1,15 @@
-import type { PolicyWarning } from './types.js';
+import type { PoliciesConfig } from './config.js';
+import type { PolicyViolation } from './augment.js';
 
 const CITATIONS_HEADING = /^#\s+Citations\s*$/m;
 
 export class CitationPolicy {
-  /** Phase 1a: warn when substantive content lacks a Citations section. */
-  check(body: string): PolicyWarning | undefined {
+  constructor(private readonly config: PoliciesConfig['citation']) {}
+
+  check(body: string): PolicyViolation | undefined {
+    if (this.config.require_section === 'off') {
+      return undefined;
+    }
     if (CITATIONS_HEADING.test(body)) {
       return undefined;
     }
@@ -30,6 +35,7 @@ export class CitationPolicy {
       code: 'MISSING_CITATIONS',
       message:
         'Substantive factual content should include a `# Citations` section with traceable sources',
+      action: this.config.require_section,
     };
   }
 }

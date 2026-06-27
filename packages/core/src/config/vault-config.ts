@@ -3,6 +3,11 @@ import { join } from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 import { MemossError } from '../errors.js';
+import {
+  parsePoliciesConfig,
+  policiesConfigSchema,
+  type PoliciesConfig,
+} from '../policies/config.js';
 import { deepMergeRecord } from './merge.js';
 import { getUserConfigPath } from './user-paths.js';
 
@@ -31,6 +36,34 @@ export const extractionConfigSchema = z.object({
 
 export type ExtractionConfig = z.infer<typeof extractionConfigSchema>;
 
+export { policiesConfigSchema, type PoliciesConfig };
+
+const DEFAULT_FLASH_MODEL: ModelSpec = {
+  provider: 'anthropic',
+  model: 'claude-haiku-4-5',
+};
+
+const agentConfigSchema = z
+  .object({
+    default_model: modelSpecSchema,
+    flash_model: modelSpecSchema.optional(),
+    /** @deprecated Use flash_model */
+    lightweight_model: modelSpecSchema.optional(),
+    max_steps: z.number().int().positive().default(50),
+    temperature: z.number().min(0).max(2).default(0.3),
+  })
+  .transform((agent) => ({
+    default_model: agent.default_model,
+    flash_model:
+      agent.flash_model ??
+      agent.lightweight_model ??
+      DEFAULT_FLASH_MODEL,
+    max_steps: agent.max_steps,
+    temperature: agent.temperature,
+  }));
+
+export type AgentConfig = z.infer<typeof agentConfigSchema>;
+
 export const vaultConfigSchema = z.object({
   name: z.string(),
   description: z.string().default(''),
@@ -39,12 +72,8 @@ export const vaultConfigSchema = z.object({
   schema_pack: z
     .enum(['personal', 'research', 'data-catalog'])
     .default('research'),
-  agent: z.object({
-    default_model: modelSpecSchema,
-    lightweight_model: modelSpecSchema,
-    max_steps: z.number().int().positive().default(50),
-    temperature: z.number().min(0).max(2).default(0.3),
-  }),
+  agent: agentConfigSchema,
+  policies: policiesConfigSchema.default(policiesConfigSchema.parse({})),
   git: z.object({
     enabled: z.boolean().default(true),
     auto_commit: z.boolean().default(true),
@@ -155,8 +184,9 @@ export function createDefaultVaultConfig(
     okf_version: '0.1',
     agent: {
       default_model: { provider: 'anthropic', model: 'claude-sonnet-4-6' },
-      lightweight_model: { provider: 'anthropic', model: 'claude-haiku-4-5' },
+      flash_model: { provider: 'anthropic', model: 'claude-haiku-4-5' },
     },
+    policies: parsePoliciesConfig({}),
     git: { enabled: true, auto_commit: true, draft_branch: true },
     search: { strategy: 'auto', hybrid_threshold_pages: 200 },
     provenance: { enabled: false, track_source_hash: false },

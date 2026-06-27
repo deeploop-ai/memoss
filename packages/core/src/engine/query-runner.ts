@@ -38,7 +38,7 @@ export async function runQuery(opts: QueryRunOptions): Promise<QueryRunResult> {
 
   const toolNames = opts.save ? QUERY_SAVE_TOOL_NAMES : QUERY_TOOL_NAMES;
   const tools = pickTools(setup.tools, toolNames);
-  const model = resolveRunnerModel(setup.config, 'lightweight', opts.model);
+  const model = resolveRunnerModel(setup.config, 'flash', opts.model);
 
   const agentResult = await runAgentLoop({
     model,

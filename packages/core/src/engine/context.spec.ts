@@ -27,7 +27,7 @@ function createVault(): string {
   mkdirSync(join(root, '.memoss'), { recursive: true });
   writeFileSync(
     join(root, '.memoss', 'config.yaml'),
-    'name: test-vault\nokf_version: "0.1"\nagent:\n  default_model:\n    provider: anthropic\n    model: claude-sonnet-4-6\n  lightweight_model:\n    provider: anthropic\n    model: claude-haiku-4-5\n',
+    'name: test-vault\nokf_version: "0.1"\nschema_pack: research\nagent:\n  default_model:\n    provider: anthropic\n    model: claude-sonnet-4-6\n  flash_model:\n    provider: anthropic\n    model: claude-haiku-4-5\n',
   );
   writeFileSync(
     join(root, '.memoss', 'instructions.md'),
@@ -44,6 +44,8 @@ describe('buildSystemPrompt', () => {
       schemaPack: 'research',
       instructions: 'Custom rule.',
       date: '2026-06-24',
+      qualityPatterns: 'L0 patterns',
+      schemaOverlay: 'research overlay',
     });
 
     expect(system).toContain('my-wiki');
@@ -60,6 +62,8 @@ describe('buildSystemPrompt', () => {
       schemaPack: 'personal',
       instructions: 'x',
       date: '2026-06-24',
+      qualityPatterns: 'L0',
+      schemaOverlay: 'personal',
       extra: { save_instructions: QUERY_SAVE_INSTRUCTIONS },
     });
 
@@ -74,6 +78,8 @@ describe('buildSystemPrompt', () => {
       schemaPack: 'research',
       instructions: 'x',
       date: '2026-06-24',
+      qualityPatterns: 'L0',
+      schemaOverlay: 'research',
       extra: { fix_instructions: LINT_FIX_INSTRUCTIONS },
     });
 
@@ -90,6 +96,8 @@ describe('createPromptContext', () => {
 
     expect(ctx.vaultName).toBe('loaded-vault');
     expect(ctx.instructions).toContain('concise titles');
+    expect(ctx.qualityPatterns).toContain('Compounding wiki');
+    expect(ctx.schemaOverlay).toContain('research');
     expect(ctx.date).toBe('2026-06-24');
   });
 });

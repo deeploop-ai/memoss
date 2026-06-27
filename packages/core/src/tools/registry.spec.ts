@@ -28,7 +28,7 @@ function createContext(): ToolContext {
     store: new FsKnowledgeStore(vaultRoot),
     git: new SimpleGitAdapter(vaultRoot),
     config: createDefaultVaultConfig(),
-    policies: new PolicyRunner(),
+    policies: new PolicyRunner(createDefaultVaultConfig()),
     draftMode: true,
   };
 }
@@ -53,7 +53,7 @@ describe('write_page policy chain', () => {
         description: 'Original',
         custom_field: 'keep-me',
       },
-      body: '# Alpha\n\nOriginal body content that is long enough.\n\n# Citations\n\n- https://example.com\n',
+      body: `# Alpha\n\n${'Original body content. '.repeat(20)}\n\n# Citations\n\n- https://example.com\n`,
     });
     ctx.policies.reset();
 
@@ -78,7 +78,7 @@ describe('write_page policy chain', () => {
         title: 'Alpha',
         description: 'Updated',
       },
-      body: 'tiny',
+      body: '# Alpha\n\ntiny\n\n# Citations\n\n- https://example.com\n',
     })) as { warnings?: Array<{ code: string }>; written?: boolean };
 
     expect(result.written).toBe(true);

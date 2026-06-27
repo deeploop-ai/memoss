@@ -1,5 +1,9 @@
 import { MemossError } from '../errors.js';
 import { validateForWrite } from '../okf/validator.js';
+import {
+  enforcePolicyViolation,
+  violationToWarning,
+} from '../policies/enforce.js';
 import type { ToolContext } from './context.js';
 import { defineTool } from './define-tool.js';
 import {
@@ -61,26 +65,51 @@ export function createWritePageTool(ctx: ToolContext) {
         : frontmatter;
 
       if (existing) {
-        const shrinkWarning = ctx.policies.augment.checkBodyNotShrunk(
-          existing.body,
+        for (const check of [
+          ctx.policies.augment.checkHeadingsPreserved(existing.body, body),
+          ctx.policies.augment.checkResourceUnchanged(
+            existing.frontmatter,
+            mergedFrontmatter,
+          ),
+          ctx.policies.augment.checkBodyNotShrunk(existing.body, body),
+        ]) {
+          if (check) {
+            enforcePolicyViolation(check);
+            if (check.action === 'warn') {
+              warnings.push(violationToWarning(check));
+            }
+          }
+        }
+      } else {
+        const mintCheck = ctx.policies.referenceMint.checkNewReferencePage(
+          normalized,
+          mergedFrontmatter,
           body,
         );
-        if (shrinkWarning) {
-          warnings.push(shrinkWarning);
+        if (mintCheck) {
+          enforcePolicyViolation(mintCheck);
+          if (mintCheck.action === 'warn') {
+            warnings.push(violationToWarning(mintCheck));
+          }
         }
       }
 
       validateForWrite({ frontmatter: mergedFrontmatter, body }, normalized);
 
-      const citationWarning = ctx.policies.citation.check(body);
-      if (citationWarning) {
-        warnings.push(citationWarning);
+      const citationCheck = ctx.policies.citation.check(body);
+      if (citationCheck) {
+        enforcePolicyViolation(citationCheck);
+        if (citationCheck.action === 'warn') {
+          warnings.push(violationToWarning(citationCheck));
+        }
       }
 
       await ctx.store.writePage(normalized, {
         frontmatter: mergedFrontmatter,
         body,
       });
+
+      ctx.policies.recordWrite(normalized);
 
       return toolResult({ path: normalized, written: true }, warnings);
     },

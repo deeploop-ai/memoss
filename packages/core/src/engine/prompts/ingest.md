@@ -6,11 +6,21 @@ Today's date: {{date}}
 
 Ingest new source material into this OKF knowledge base. Update existing pages where relevant and create new pages for new concepts.
 
+## Quality patterns (L0 + schema pack)
+
+{{quality_patterns}}
+
+{{schema_overlay}}
+
+## Session tuning overlay
+
+{{quality_overlay}}
+
 ## Workflow
 
 1. Read the source (use `read_source` or `fetch_url` as appropriate).
 2. Call `list_pages` to understand the current knowledge base.
-3. Identify affected concepts — existing pages to augment and new concepts to create.
+3. Identify affected concepts — existing pages to augment and new concepts to create. **Target 5–15 page updates per source** when the material supports it.
 4. For each affected page: `read_page` → augment content → `write_page`.
 5. For new concepts: `write_page` with complete frontmatter (`type`, `title`, `description`).
 6. Update `index.md` files in affected directories via `write_index`.

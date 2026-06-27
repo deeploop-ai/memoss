@@ -46,7 +46,7 @@ export async function runLint(opts: LintRunOptions): Promise<LintRunResult> {
 
   const toolNames = opts.fix ? LINT_FIX_TOOL_NAMES : LINT_TOOL_NAMES;
   const tools = pickTools(setup.tools, toolNames);
-  const model = resolveRunnerModel(setup.config, 'lightweight', opts.model);
+  const model = resolveRunnerModel(setup.config, 'flash', opts.model);
 
   const agentResult = await runAgentLoop({
     model,

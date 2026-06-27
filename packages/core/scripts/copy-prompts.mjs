@@ -1,18 +1,26 @@
-import { cpSync, mkdirSync, readdirSync } from 'node:fs';
+import { cpSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
+function copyMarkdownTree(srcDir, destDir) {
+  mkdirSync(destDir, { recursive: true });
+  for (const entry of readdirSync(srcDir)) {
+    const srcPath = join(srcDir, entry);
+    const destPath = join(destDir, entry);
+    if (statSync(srcPath).isDirectory()) {
+      copyMarkdownTree(srcPath, destPath);
+    } else if (entry.endsWith('.md')) {
+      cpSync(srcPath, destPath);
+    }
+  }
+}
+
 function copyMarkdownPrompts() {
   const src = join(root, 'src', 'engine', 'prompts');
   const dest = join(root, 'dist', 'engine', 'prompts');
-  mkdirSync(dest, { recursive: true });
-  for (const file of readdirSync(src)) {
-    if (file.endsWith('.md')) {
-      cpSync(join(src, file), join(dest, file));
-    }
-  }
+  copyMarkdownTree(src, dest);
   console.log('Copied engine prompts to dist/engine/prompts');
 }
 

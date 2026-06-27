@@ -81,6 +81,7 @@ export {
   runQuery,
   runLint,
   runValidate,
+  runTuningPass,
   runAgentLoop,
   resolveModel,
   parseModelOverride,
@@ -96,7 +97,17 @@ export {
   type LintRunResult,
   type ValidateRunOptions,
   type ValidateRunResult,
+  type TuningRunOptions,
+  type TuningRunResult,
 } from './engine/index.js';
+export { runDeterministicLint, type LintIssue } from './lint/checks.js';
+export { computeHealthScore, summarizeLintIssues } from './lint/score.js';
+export { runMigrate, type MigrateOptions, type MigrateReport } from './migrate/runner.js';
+export { ShellSession, type ShellTaskProposal, type ShellTaskResult } from './shell/session.js';
+export { classifyIntentFastPath, isWriteTask } from './shell/intent-fast-path.js';
+export { runShellAgentTurn } from './shell/shell-runner.js';
+export { executeShellTask } from './shell/dispatch.js';
+export { parsePoliciesConfig, type PoliciesConfig } from './policies/config.js';
 export { checkSourceContent, type ContentHeuristicResult } from './validation/content-heuristics.js';
 export { discoverSkills } from './skills/discovery.js';
 export { buildSkillCatalog } from './skills/catalog.js';

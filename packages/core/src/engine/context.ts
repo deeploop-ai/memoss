@@ -1,13 +1,20 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { VaultConfig } from '../config/vault-config.js';
-import { loadPromptTemplate, type PromptName } from './prompts/load.js';
+import {
+  loadPromptTemplate,
+  loadQualityPatterns,
+  loadSchemaPackOverlay,
+  type PromptName,
+} from './prompts/load.js';
 
 export interface PromptContext {
   vaultName: string;
   schemaPack: string;
   instructions: string;
   date: string;
+  qualityPatterns: string;
+  schemaOverlay: string;
 }
 
 export interface BuildSystemPromptOptions extends PromptContext {
@@ -33,6 +40,8 @@ export function createPromptContext(
     schemaPack: config.schema_pack,
     instructions: loadVaultInstructions(vaultRoot),
     date: date.toISOString().slice(0, 10),
+    qualityPatterns: loadQualityPatterns(),
+    schemaOverlay: loadSchemaPackOverlay(config.schema_pack),
   };
 }
 
@@ -50,8 +59,11 @@ export function buildSystemPrompt(opts: BuildSystemPromptOptions): string {
     schema_pack: opts.schemaPack,
     instructions: opts.instructions,
     date: opts.date,
+    quality_patterns: opts.qualityPatterns,
+    schema_overlay: opts.schemaOverlay,
     save_instructions: '',
     fix_instructions: '',
+    quality_overlay: '',
     ...opts.extra,
   });
 }

@@ -70,6 +70,9 @@ export interface IngestRunOptions extends RunnerBaseOptions {
   noExtract?: boolean;
   noCache?: boolean;
   skipValidate?: boolean;
+  skipTuning?: boolean;
+  emphasis?: string;
+  qualityOverlay?: string;
   onWarning?: (message: string) => void;
 }
 
@@ -113,6 +116,7 @@ export interface IngestRunResult extends Omit<AgentResult, 'status'> {
   draftBranch?: string;
   diff?: string;
   validation?: ValidateRunResult;
+  affects?: string[];
 }
 
 export interface QueryRunResult extends AgentResult {

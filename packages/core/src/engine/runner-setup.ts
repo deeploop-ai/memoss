@@ -40,7 +40,7 @@ export function createRunnerSetup(opts: RunnerSetupOptions): RunnerSetup {
     store: new FsKnowledgeStore(opts.vaultRoot),
     git: new SimpleGitAdapter(opts.vaultRoot),
     config,
-    policies: new PolicyRunner(),
+    policies: new PolicyRunner(config),
     source: opts.source,
     draftMode: opts.draftMode ?? config.git.draft_branch,
   };
@@ -80,14 +80,14 @@ export function createSourceForIngest(
 
 export function resolveRunnerModel(
   config: VaultConfig,
-  tier: 'default' | 'lightweight',
+  tier: 'default' | 'flash' | 'lightweight',
   override?: ModelSpec,
 ): LanguageModel {
   const spec =
     override ??
     (tier === 'default'
       ? config.agent.default_model
-      : config.agent.lightweight_model);
+      : config.agent.flash_model);
   return resolveModel(spec);
 }
 

@@ -397,7 +397,7 @@ export async function runExtract(
   const tools = createExtractToolRegistry(extractCtx);
   const model = resolveRunnerModel(
     config,
-    'lightweight',
+    'flash',
     opts.model ?? config.extraction.model,
   );
 

@@ -6,6 +6,12 @@ Today's date: {{date}}
 
 Audit this knowledge base for quality issues. Produce a structured lint report.
 
+## Quality patterns
+
+{{quality_patterns}}
+
+{{schema_overlay}}
+
 ## Workflow
 
 1. `list_pages` to enumerate all pages.

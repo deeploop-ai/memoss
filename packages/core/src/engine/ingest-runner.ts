@@ -15,9 +15,14 @@ import {
 import type { IngestRunOptions, IngestRunResult, ValidateRunResult } from './types.js';
 import { summarizeAgentStep } from './step-summary.js';
 import { runValidate } from './validate-runner.js';
+import { runTuningPass } from './tuning-runner.js';
 
-function buildIngestPrompt(source: string, kind: string): string {
-  return [
+function buildIngestPrompt(
+  source: string,
+  kind: string,
+  emphasis?: string,
+): string {
+  const lines = [
     'Ingest the following source into the knowledge base.',
     '',
     `Source URI: ${source}`,
@@ -25,7 +30,11 @@ function buildIngestPrompt(source: string, kind: string): string {
     '',
     'Read the source, analyze the knowledge base, update affected pages, create new pages as needed,',
     'refresh indexes, append to the activity log, and commit when complete.',
-  ].join('\n');
+  ];
+  if (emphasis) {
+    lines.push('', `User emphasis: ${emphasis}`);
+  }
+  return lines.join('\n');
 }
 
 function formatValidationFailure(validation: ValidateRunResult): string {
@@ -93,6 +102,22 @@ export async function runIngest(
     }
   }
 
+  let qualityOverlay = opts.qualityOverlay ?? '';
+  if (!opts.skipTuning && !qualityOverlay) {
+    const tuning = await runTuningPass({
+      vaultRoot: opts.vaultRoot,
+      source: resolved.source,
+      kind: resolvedKind,
+      emphasis: opts.emphasis,
+      model: opts.model,
+      abortSignal: opts.abortSignal,
+      onStepFinish: opts.onStepFinish,
+    });
+    qualityOverlay = tuning.overlay;
+  } else if (opts.emphasis && !qualityOverlay) {
+    qualityOverlay = `**User emphasis:** ${opts.emphasis}`;
+  }
+
   const source = createSourceForIngest(resolved.source, resolved.kind);
 
   const useDraft = !opts.noDraft;
@@ -101,6 +126,8 @@ export async function runIngest(
     source,
     draftMode: useDraft,
   });
+
+  setup.ctx.policies.reset();
 
   let draftBranch: string | undefined;
   if (useDraft) {
@@ -111,6 +138,9 @@ export async function runIngest(
   const system = buildSystemPrompt({
     ...promptCtx,
     prompt: 'ingest',
+    extra: {
+      quality_overlay: qualityOverlay || '_No session overlay._',
+    },
   });
 
   const tools = pickTools(setup.tools, INGEST_TOOL_NAMES);
@@ -119,7 +149,7 @@ export async function runIngest(
   const agentResult = await runAgentLoop({
     model,
     system,
-    prompt: buildIngestPrompt(resolved.source, resolvedKind),
+    prompt: buildIngestPrompt(resolved.source, resolvedKind, opts.emphasis),
     tools,
     maxSteps: setup.config.agent.max_steps,
     temperature: setup.config.agent.temperature,
@@ -134,9 +164,15 @@ export async function runIngest(
     diff = await setup.ctx.git.diff();
   }
 
-  if (setup.config.provenance.enabled && agentResult.status === 'complete') {
+  const affects = [...setup.ctx.policies.writtenPages];
+  const trackProvenance =
+    setup.config.provenance.enabled ||
+    setup.config.policies.provenance.track_affects;
+
+  if (trackProvenance && agentResult.status === 'complete') {
     registerIngestProvenance(opts.vaultRoot, {
       sourceUri: resolved.originalSource,
+      affects,
     });
   }
 
@@ -144,5 +180,6 @@ export async function runIngest(
     ...agentResult,
     draftBranch,
     diff,
+    affects,
   };
 }

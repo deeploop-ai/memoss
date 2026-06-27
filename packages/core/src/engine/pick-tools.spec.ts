@@ -18,7 +18,7 @@ function createRegistry() {
     store: new FsKnowledgeStore('/tmp/unused'),
     git: new SimpleGitAdapter('/tmp/unused'),
     config: createDefaultVaultConfig(),
-    policies: new PolicyRunner(),
+    policies: new PolicyRunner(createDefaultVaultConfig()),
     draftMode: true,
   });
 }

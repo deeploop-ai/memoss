@@ -113,7 +113,7 @@ export async function runValidate(
     },
   });
 
-  const model = resolveRunnerModel(setup.config, 'lightweight', opts.model);
+  const model = resolveRunnerModel(setup.config, 'flash', opts.model);
 
   const agentResult = await runAgentLoop({
     model,

@@ -136,16 +136,17 @@ describe('runIngest', () => {
       kind: 'web',
       extract: false,
       skipValidate: true,
+      skipTuning: true,
     });
 
     expect(result.status).toBe('complete');
     expect(result.draftBranch).toMatch(/^memoss\/draft\/ingest-/);
 
-    const call = mockedGenerateText.mock.calls[0][0];
-    expect(call.system).toContain('Ingest Agent');
-    expect(call.tools).toHaveProperty('read_source');
-    expect(call.tools).toHaveProperty('git_commit');
-    expect(call.prompt).toContain('https://example.com/article');
+    const ingestCall = mockedGenerateText.mock.calls.at(-1)?.[0];
+    expect(ingestCall?.system).toContain('Ingest Agent');
+    expect(ingestCall?.tools).toHaveProperty('read_source');
+    expect(ingestCall?.tools).toHaveProperty('git_commit');
+    expect(ingestCall?.prompt).toContain('https://example.com/article');
   });
 
   it('aborts ingest when pre-validation rejects content', async () => {
