@@ -20,6 +20,7 @@ export interface RebuildOptions {
   noCache?: boolean;
   skipValidate?: boolean;
   dryRun?: boolean;
+  schemaPacksRoot?: string;
   model?: ModelSpec;
   abortSignal?: AbortSignal;
   onStepFinish?: (step: AgentStepSummary) => void;
@@ -88,7 +89,9 @@ export async function runRebuild(opts: RebuildOptions): Promise<RebuildReport> {
   let pagesRemoved = 0;
 
   if (reset) {
-    const resetReport = await resetWikiContent(opts.vaultRoot, config);
+    const resetReport = await resetWikiContent(opts.vaultRoot, config, {
+      schemaPacksRoot: opts.schemaPacksRoot,
+    });
     pagesRemoved = resetReport.pagesRemoved;
   }
 

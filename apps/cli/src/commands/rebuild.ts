@@ -2,6 +2,7 @@ import { defineCommand } from 'citty';
 import { consola } from 'consola';
 import { runRebuild, type RebuildSourceOrigin } from '@memoss/core';
 import { resolveVaultRoot } from '../utils/vault.js';
+import { resolveSchemaPacksRoot } from '../utils/schema-pack.js';
 import { resolveModelArgs } from '../utils/model-args.js';
 import { logAgentStep } from '../utils/errors.js';
 import { ExitCode } from '../exit-codes.js';
@@ -91,6 +92,7 @@ export const rebuildCommand = defineCommand({
       vaultRoot,
       from,
       reset,
+      schemaPacksRoot: resolveSchemaPacksRoot(),
       noDraft: args.noDraft,
       noCache: args.noCache,
       skipValidate: args.skipValidate,

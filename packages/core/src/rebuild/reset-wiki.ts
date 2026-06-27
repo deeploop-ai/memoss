@@ -8,41 +8,13 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { FsKnowledgeStore } from '../adapters/fs-store.js';
 import type { VaultConfig } from '../config/vault-config.js';
+import { MemossError } from '../errors.js';
+import { resolveSchemaPacksRoot } from '../schema-pack/resolve-root.js';
 
 const TOKEN_PATTERN = /\{\{(name|description|date)\}\}/g;
 const PRESERVE_PREFIXES = ['sources/', '.memoss/cache/'];
-
-function resolveSchemaPacksRoot(): string {
-  const besideBundle = join(
-    dirname(fileURLToPath(import.meta.url)),
-    '..',
-    '..',
-    '..',
-    '..',
-    'schema-packs',
-  );
-  if (existsSync(besideBundle)) {
-    return besideBundle;
-  }
-
-  let dir = process.cwd();
-  while (true) {
-    const candidate = join(dir, 'schema-packs');
-    if (existsSync(candidate)) {
-      return candidate;
-    }
-    const parent = dirname(dir);
-    if (parent === dir) {
-      break;
-    }
-    dir = parent;
-  }
-
-  throw new Error('Could not locate schema-packs directory.');
-}
 
 function shouldPreservePage(relativePath: string): boolean {
   const normalized = relativePath.replace(/\\/g, '/');
@@ -102,6 +74,7 @@ function copyWikiSkeleton(
 export async function resetWikiContent(
   vaultRoot: string,
   config: VaultConfig,
+  options: { schemaPacksRoot?: string } = {},
 ): Promise<{ pagesRemoved: number }> {
   const store = new FsKnowledgeStore(vaultRoot);
   const pages = await store.listPages();
@@ -116,11 +89,12 @@ export async function resetWikiContent(
   }
 
   const schemaPackRoot = join(
-    resolveSchemaPacksRoot(),
+    resolveSchemaPacksRoot(options.schemaPacksRoot),
     config.schema_pack,
   );
   if (!existsSync(schemaPackRoot)) {
-    throw new Error(
+    throw new MemossError(
+      'VAULT_NOT_FOUND',
       `Schema pack "${config.schema_pack}" not found at ${schemaPackRoot}`,
     );
   }

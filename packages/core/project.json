@@ -11,7 +11,8 @@
       "options": {
         "commands": [
           "tsc -p tsconfig.lib.json",
-          "node scripts/copy-prompts.mjs"
+          "node scripts/copy-prompts.mjs",
+          "node scripts/copy-schema-packs.mjs"
         ],
         "cwd": "packages/core",
         "parallel": false

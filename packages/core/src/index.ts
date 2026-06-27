@@ -105,6 +105,10 @@ export { runDeterministicLint, type LintIssue } from './lint/checks.js';
 export { computeHealthScore, summarizeLintIssues } from './lint/score.js';
 export { buildLintReport, writeLintReport, type LintReport } from './lint/report.js';
 export { runVaultLintChecks } from './lint/vault-lint.js';
+export {
+  resolveSchemaPacksRoot,
+  type SchemaPackName,
+} from './schema-pack/resolve-root.js';
 export { runMigrate, type MigrateOptions, type MigrateReport } from './migrate/runner.js';
 export {
   discoverRebuildSources,

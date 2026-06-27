@@ -9,38 +9,22 @@ import {
 } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MemossError } from '@memoss/core';
+import { MemossError, resolveSchemaPacksRoot as resolveCoreSchemaPacksRoot } from '@memoss/core';
 
 export type SchemaPackName = 'research' | 'personal' | 'data-catalog';
 
 const TOKEN_PATTERN = /\{\{(name|description|date)\}\}/g;
 
 export function resolveSchemaPacksRoot(): string {
-  const besideBundle = join(
+  const besideCliBundle = join(
     dirname(fileURLToPath(import.meta.url)),
     'schema-packs',
   );
-  if (existsSync(besideBundle)) {
-    return besideBundle;
+  if (existsSync(besideCliBundle)) {
+    return besideCliBundle;
   }
 
-  let dir = process.cwd();
-  while (true) {
-    const candidate = join(dir, 'schema-packs');
-    if (existsSync(candidate)) {
-      return candidate;
-    }
-    const parent = dirname(dir);
-    if (parent === dir) {
-      break;
-    }
-    dir = parent;
-  }
-
-  throw new MemossError(
-    'VAULT_NOT_FOUND',
-    'Could not locate schema-packs directory.',
-  );
+  return resolveCoreSchemaPacksRoot();
 }
 
 export function initVaultFromSchemaPack(
