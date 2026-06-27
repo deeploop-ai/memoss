@@ -14,11 +14,21 @@ import { migrateCommand } from './commands/migrate.js';
 import { runShellRepl } from './tui/shell-repl.js';
 import { CLI_VERSION } from './version.js';
 
-function shouldLaunchShell(rawArgs: string[]): boolean {
+const GLOBAL_FLAGS = new Set([
+  '--version',
+  '-v',
+  '--help',
+  '-h',
+]);
+
+export function shouldLaunchShell(rawArgs: string[]): boolean {
   if (process.env.MEMOSS_NO_TUI === '1') {
     return false;
   }
   if (rawArgs.includes('--no-tui') || rawArgs.includes('--noTui')) {
+    return false;
+  }
+  if (rawArgs.some((arg) => GLOBAL_FLAGS.has(arg))) {
     return false;
   }
   const subcommands = new Set([

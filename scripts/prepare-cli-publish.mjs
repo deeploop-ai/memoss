@@ -38,7 +38,7 @@ const prepared = {
   license: 'Apache-2.0',
   publishConfig: { access: 'public', registry: 'https://registry.npmjs.org' },
   type: 'module',
-  engines: { node: '>=20' },
+  engines: { node: '^20.0.0 || ^22.0.0 || ^24.0.0' },
   repository: {
     type: 'git',
     url: 'git+https://github.com/deeploop-ai/memoss.git',
