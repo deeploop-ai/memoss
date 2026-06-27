@@ -54,6 +54,15 @@ export const ingestCommand = defineCommand({
       description: 'Skip pre-ingest content validation',
       default: false,
     },
+    skipTuning: {
+      type: 'boolean',
+      description: 'Skip pre-ingest tuning pass',
+      default: false,
+    },
+    emphasis: {
+      type: 'string',
+      description: 'Steer ingest priorities; overrides tuning skip recommendations',
+    },
     vault: {
       type: 'string',
       alias: 'C',
@@ -74,6 +83,8 @@ export const ingestCommand = defineCommand({
       extract: args.noExtract ? false : 'auto',
       noCache: args.noCache,
       skipValidate: args.skipValidate,
+      skipTuning: args.skipTuning,
+      emphasis: args.emphasis,
       noDraft: args.noDraft,
       model: resolveModelArgs(args),
       onStepFinish: (step) => {
@@ -117,6 +128,12 @@ export const ingestCommand = defineCommand({
     if (result.status === 'incomplete') {
       consola.warn('Agent stopped before completing (max steps reached).');
       process.exit(ExitCode.AGENT_INCOMPLETE);
+    }
+
+    if (result.status === 'complete' && (result.affects?.length ?? 0) === 0) {
+      consola.warn(
+        'Ingest finished without creating or updating any pages. Retry with --emphasis or --skip-tuning if the source was skipped for topical mismatch.',
+      );
     }
   },
 });

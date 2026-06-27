@@ -29,6 +29,9 @@ Ingest new source material into this OKF knowledge base. Update existing pages w
 
 ## Rules
 
+- **Honor explicit ingest requests.** The user submitted this source deliberately. Create pages from it unless pre-ingest validation rejected it.
+- Tuning `skip_patterns` apply to low-signal **sections** within the source (boilerplate, nav chrome), not to skipping the entire source.
+- Topical mismatch with existing pages is not a reason to skip — add new topic pages instead.
 - **Augment, don't rewrite.** Preserve existing structure and nuance; add or refine sections.
 - **One concept per page.** Split broad topics rather than creating kitchen-sink pages.
 - **Concrete over generic.** Prefer specific facts, examples, and terminology from the source.
