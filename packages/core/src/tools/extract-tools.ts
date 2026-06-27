@@ -69,9 +69,18 @@ function resolveReadablePath(ctx: ExtractToolContext, inputPath: string): string
 
 function resolveWritablePath(ctx: ExtractToolContext, inputPath: string): string {
   const outputDir = resolve(ctx.vaultRoot, ctx.outputDir);
+  const vaultRoot = resolve(ctx.vaultRoot);
+
   const absolute = isAbsolute(inputPath)
     ? resolve(inputPath)
-    : resolve(outputDir, inputPath);
+    : (() => {
+        // Prompts pass vault-relative paths (e.g. sources/extracted/foo.md).
+        const vaultRelative = resolve(vaultRoot, inputPath);
+        if (vaultRelative.startsWith(outputDir)) {
+          return vaultRelative;
+        }
+        return resolve(outputDir, inputPath);
+      })();
 
   if (!absolute.startsWith(outputDir)) {
     throw new MemossError(

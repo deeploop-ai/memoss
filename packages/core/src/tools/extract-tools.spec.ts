@@ -1,0 +1,60 @@
+import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { tmpdir } from 'node:os';
+import { afterEach, describe, expect, it } from 'vitest';
+import { createDefaultVaultConfig } from '../config/vault-config.js';
+import type { ExtractToolContext } from './extract-context.js';
+import { createExtractWriteFileTool } from './extract-tools.js';
+
+const tempDirs: string[] = [];
+
+afterEach(() => {
+  for (const dir of tempDirs.splice(0)) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+function createExtractContext(): ExtractToolContext {
+  const vaultRoot = mkdtempSync(join(tmpdir(), 'memoss-extract-tools-'));
+  tempDirs.push(vaultRoot);
+  mkdirSync(join(vaultRoot, 'sources', 'extracted'), { recursive: true });
+
+  const config = createDefaultVaultConfig();
+  return {
+    vaultRoot,
+    config,
+    skills: new Map(),
+    outputDir: config.extraction.output_dir,
+    sourceUri: 'https://example.com/article',
+  };
+}
+
+describe('createExtractWriteFileTool', () => {
+  it('writes vault-relative paths under sources/extracted', async () => {
+    const ctx = createExtractContext();
+    const writeFile = createExtractWriteFileTool(ctx);
+    const relativePath = `${ctx.outputDir}/example-com-article.md`;
+
+    const result = await writeFile.execute!(
+      { path: relativePath, content: '# Article' },
+      { toolCallId: 'test', messages: [] },
+    );
+
+    const expected = resolve(ctx.vaultRoot, relativePath);
+    expect(result.path).toBe(expected);
+    expect(readFileSync(expected, 'utf8')).toBe('# Article');
+  });
+
+  it('writes basename-only paths into sources/extracted', async () => {
+    const ctx = createExtractContext();
+    const writeFile = createExtractWriteFileTool(ctx);
+
+    await writeFile.execute!(
+      { path: 'example-com-article.md', content: '# Article' },
+      { toolCallId: 'test', messages: [] },
+    );
+
+    const expected = resolve(ctx.vaultRoot, ctx.outputDir, 'example-com-article.md');
+    expect(readFileSync(expected, 'utf8')).toBe('# Article');
+  });
+});
