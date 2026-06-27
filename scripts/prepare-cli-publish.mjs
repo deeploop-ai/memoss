@@ -36,7 +36,7 @@ const prepared = {
   description:
     'Agent-native knowledge runtime - ingest, query, and lint your OKF knowledge base from the CLI.',
   license: 'Apache-2.0',
-  publishConfig: { access: 'public' },
+  publishConfig: { access: 'public', registry: 'https://registry.npmjs.org' },
   type: 'module',
   engines: { node: '>=20' },
   repository: {
@@ -48,7 +48,7 @@ const prepared = {
   bugs: { url: 'https://github.com/deeploop-ai/memoss/issues' },
   keywords: ['memoss', 'knowledge-base', 'okf', 'cli', 'mcp', 'ai', 'wiki'],
   bin: { memoss: 'main.js' },
-  files: ['main.js', 'cli.js', 'version.js', 'exit-codes.js', 'commands', 'utils'],
+  files: ['main.js', 'cli.js', 'version.js', 'exit-codes.js', 'commands', 'utils', 'tui'],
   dependencies: {
     '@memoss/core': `^${corePkg.version}`,
     '@memoss/mcp-server': `^${mcpPkg.version}`,

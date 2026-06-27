@@ -4,8 +4,9 @@
   "license": "Apache-2.0",
   "packageManager": "pnpm@9.15.9",
   "scripts": {
-    "publish:libs": "nx release publish --first-release -p @memoss/core,@memoss/mcp-server",
-    "publish:cli": "nx run @memoss/cli:publish"
+    "publish:libs": "nx release publish -p @memoss/core,@memoss/mcp-server -y",
+    "publish:cli": "nx run @memoss/cli:publish",
+    "publish:all": "pnpm publish:libs && pnpm publish:cli"
   },
   "private": true,
   "devDependencies": {
