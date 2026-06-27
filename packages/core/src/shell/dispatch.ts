@@ -74,6 +74,7 @@ export async function executeShellTask(
         emphasis,
         qualityOverlay,
         skipTuning: true,
+        crawl: params.crawl as import('../engine/types.js').IngestRunOptions['crawl'],
         onStepFinish: opts.onStepFinish,
       });
 
@@ -97,12 +98,24 @@ export async function executeShellTask(
     case 'query': {
       const question = String(params.question ?? '');
       const save = params.save === true;
+      const format =
+        params.format === 'comparison' ? 'comparison' : 'default';
+      let streamed = '';
       const query = await runQuery({
         vaultRoot,
         question,
         save,
+        suggestSave: !save,
+        format,
+        onTextDelta: (delta) => {
+          streamed += delta;
+          process.stdout.write(delta);
+        },
         onStepFinish: opts.onStepFinish,
       });
+      if (streamed && !streamed.endsWith('\n')) {
+        process.stdout.write('\n');
+      }
       return {
         result: {
           task: 'query',

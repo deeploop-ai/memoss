@@ -6,12 +6,18 @@ import {
   classifyIntentFastPath,
   computeHealthScore,
   executeShellTask,
+  extractVaultLinks,
   FsKnowledgeStore,
+  getUserConfigDir,
   isWriteTask,
+  loadShellSession,
   loadVaultConfig,
+  openObsidianPage,
+  openVaultPage,
   runDeterministicLint,
   runShellAgentTurn,
   runTuningPass,
+  saveShellSession,
   type ShellTaskProposal,
 } from '@memoss/core';
 import { resolveVaultRoot } from '../utils/vault.js';
@@ -50,6 +56,37 @@ async function promptEmphasis(): Promise<string | undefined> {
     const answer = await rl.question('补充 emphasis（可留空）: ');
     const trimmed = answer.trim();
     return trimmed || undefined;
+  } finally {
+    rl.close();
+  }
+}
+
+async function promptOpenRefs(vaultRoot: string, detail?: string): Promise<void> {
+  if (!detail) {
+    return;
+  }
+  const links = extractVaultLinks(detail).slice(0, 5);
+  if (links.length === 0) {
+    return;
+  }
+
+  const rl = readline.createInterface({ input, output });
+  try {
+    consola.info(`引用页: ${links.join(', ')}`);
+    const answer = await rl.question('打开引用页？[o=系统默认/b=Obsidian/n] ');
+    const choice = answer.trim().toLowerCase();
+    if (choice === 'n' || choice === 'no') {
+      return;
+    }
+    const useObsidian = choice === 'b' || choice === 'obsidian';
+    for (const link of links) {
+      const opened = useObsidian
+        ? await openObsidianPage(vaultRoot, link)
+        : await openVaultPage(vaultRoot, link);
+      if (!opened) {
+        consola.warn(`无法打开: ${link}`);
+      }
+    }
   } finally {
     rl.close();
   }
@@ -99,6 +136,9 @@ async function confirmAndRunTask(
   if (proposal.task === 'ingest') {
     const source = String(proposal.params.source ?? '');
     consola.info(`计划 ingest: ${source}`);
+    if (proposal.params.crawl) {
+      consola.info(`Crawl: ${JSON.stringify(proposal.params.crawl)}`);
+    }
     try {
       const tuning = await runTuningPass({ vaultRoot, source });
       consola.log(`\n${tuning.overlay}\n`);
@@ -132,10 +172,14 @@ async function confirmAndRunTask(
   });
 
   session.setLastTask(outcome.result);
-  if (outcome.result.detail) {
+  if (outcome.result.detail && proposal.task !== 'query') {
     consola.log('\n' + outcome.result.detail);
   }
   consola.info(outcome.result.summary);
+
+  if (proposal.task === 'query') {
+    await promptOpenRefs(vaultRoot, outcome.result.detail);
+  }
 
   if (proposal.task === 'ingest' && outcome.ingest?.draftBranch) {
     consola.info(`Draft branch: ${outcome.ingest.draftBranch}`);
@@ -165,7 +209,13 @@ export async function runShellRepl(vaultArg?: string): Promise<void> {
     'Memoss Shell — 自然语言驱动（导入 URL、提问、lint、批准 draft）。输入 exit 退出。\n',
   );
 
-  const session = new ShellSession();
+  const userConfigDir = getUserConfigDir();
+  const saved = loadShellSession(userConfigDir, vaultRoot);
+  const session = saved ? ShellSession.fromState(saved) : new ShellSession();
+  if (saved && saved.turns.length > 0) {
+    consola.info(`已恢复会话（${saved.turns.length} 轮历史）。`);
+  }
+
   const rl = readline.createInterface({ input, output });
 
   try {
@@ -184,14 +234,18 @@ export async function runShellRepl(vaultArg?: string): Promise<void> {
         const proposal = await resolveProposal(vaultRoot, message, session);
         if (!proposal) {
           consola.warn('未能识别任务，请换种说法或给出 URL/问题。');
+          saveShellSession(userConfigDir, vaultRoot, session.toJSON());
           continue;
         }
         await confirmAndRunTask(vaultRoot, proposal, session);
+        saveShellSession(userConfigDir, vaultRoot, session.toJSON());
       } catch (error) {
         consola.error(error instanceof Error ? error.message : String(error));
+        saveShellSession(userConfigDir, vaultRoot, session.toJSON());
       }
     }
   } finally {
+    saveShellSession(userConfigDir, vaultRoot, session.toJSON());
     rl.close();
   }
 }

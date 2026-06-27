@@ -34,8 +34,10 @@ export const initCommand = defineCommand({
   async run({ args }) {
     const targetPath = resolve(args.path ?? getDefaultVaultPath());
     const pack = args.pack as SchemaPackName;
-    if (pack !== 'research' && pack !== 'personal') {
-      throw new Error(`Unsupported schema pack "${pack}". Use research or personal.`);
+    if (pack !== 'research' && pack !== 'personal' && pack !== 'data-catalog') {
+      throw new Error(
+        `Unsupported schema pack "${pack}". Use research, personal, or data-catalog.`,
+      );
     }
 
     const name = args.name ?? basename(targetPath);

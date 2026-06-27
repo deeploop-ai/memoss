@@ -64,6 +64,8 @@ export function buildSystemPrompt(opts: BuildSystemPromptOptions): string {
     save_instructions: '',
     fix_instructions: '',
     quality_overlay: '',
+    deterministic_lint: '',
+    format_instructions: '',
     ...opts.extra,
   });
 }
@@ -75,6 +77,17 @@ After answering, persist the exploration as a new note:
 - Include \`title\` and \`description\`.
 - Add bidirectional links between the note and cited pages.
 - Use \`append_log\` to record the saved note.`;
+
+export const QUERY_COMPARISON_INSTRUCTIONS = `## Comparison format
+
+Structure the answer as a markdown comparison table:
+- First row: column headers (concepts/options being compared)
+- First column: comparison dimensions
+- Cite vault pages in cells where applicable`;
+
+export const QUERY_SAVE_HEURISTIC = `## Save suggestion
+
+If the answer synthesizes multiple pages, resolves a non-trivial question, or would be useful to revisit, mention that it is worth saving to notes/.`;
 
 export const LINT_FIX_INSTRUCTIONS = `## Fix mode
 

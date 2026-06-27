@@ -28,6 +28,8 @@ Answer the user's question using only information from this knowledge base. Synt
 
 {{save_instructions}}
 
+{{format_instructions}}
+
 ## Vault-specific instructions
 
 {{instructions}}

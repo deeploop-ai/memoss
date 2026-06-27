@@ -80,6 +80,7 @@ export {
   resolveIngestSource,
   runQuery,
   runLint,
+  runLintDeterministic,
   runValidate,
   runTuningPass,
   runAgentLoop,
@@ -102,9 +103,23 @@ export {
 } from './engine/index.js';
 export { runDeterministicLint, type LintIssue } from './lint/checks.js';
 export { computeHealthScore, summarizeLintIssues } from './lint/score.js';
+export { buildLintReport, writeLintReport, type LintReport } from './lint/report.js';
+export { runVaultLintChecks } from './lint/vault-lint.js';
 export { runMigrate, type MigrateOptions, type MigrateReport } from './migrate/runner.js';
-export { ShellSession, type ShellTaskProposal, type ShellTaskResult } from './shell/session.js';
-export { classifyIntentFastPath, isWriteTask } from './shell/intent-fast-path.js';
+export { ShellSession, type ShellTaskProposal, type ShellTaskResult, type ShellSessionState } from './shell/session.js';
+export { classifyIntentFastPath, isWriteTask, parseCrawlParams } from './shell/intent-fast-path.js';
+export {
+  extractVaultLinks,
+  openObsidianPage,
+  openVaultPage,
+  resolveVaultPagePath,
+} from './shell/open-refs.js';
+export {
+  loadShellSession,
+  saveShellSession,
+  clearShellSession,
+  vaultSessionHash,
+} from './shell/session-store.js';
 export { runShellAgentTurn } from './shell/shell-runner.js';
 export { executeShellTask } from './shell/dispatch.js';
 export { parsePoliciesConfig, type PoliciesConfig } from './policies/config.js';

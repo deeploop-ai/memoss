@@ -38,6 +38,14 @@ export class ShellSession {
   private lastTask?: ShellTaskResult;
   pendingProposal?: ShellTaskProposal;
 
+  static fromState(state: ShellSessionState): ShellSession {
+    const session = new ShellSession();
+    session.turns.push(...state.turns);
+    session.lastTask = state.lastTask;
+    session.pendingProposal = state.pendingProposal;
+    return session;
+  }
+
   addUserTurn(content: string): void {
     this.turns.push({ role: 'user', content });
     this.trim();

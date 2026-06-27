@@ -11,37 +11,38 @@
 
 ### Schema Pack：`data-catalog`
 
-- [ ] `references/metrics/<slug>.md` 结构化提取（SQL 公式独立成页）
-- [ ] `references/joins/<a>__<b>.md` join path 参考页
-- [ ] 主概念页 `# Metrics` / `# Joins` 节模板与 lint 检查
-- [ ] GA4 ecommerce 示例 bundle 端到端验证
+- [x] `references/metrics/<slug>.md` 结构化提取（SQL 公式独立成页）
+- [x] `references/joins/<a>__<b>.md` join path 参考页
+- [x] 主概念页 `# Metrics` / `# Joins` 节模板与 lint 检查
+- [x] GA4 ecommerce 示例 bundle（`examples/ga4-ecommerce/`）
 
 ### Query 复利增强
 
 - [ ] `--format marp` 幻灯片输出
-- [ ] comparison table 专用模板
-- [ ] query 会话内「自动 save 高价值回答」启发式
+- [x] comparison table 专用模板（`--format comparison` / Shell 对比意图）
+- [x] query 会话内「自动 save 高价值回答」启发式（`suggestSave`）
 
 ### Lint 进阶
 
-- [ ] provenance 过时检测接入 lint runner（config 已有 `stale_check_on_lint`）
-- [ ] 跨页矛盾检测（LLM 批处理，非确定性）
-- [ ] `lint --fix` 对 orphan 页自动补链
-- [ ] CI 门禁：`health_score < N` 时 exit non-zero
+- [x] provenance 过时检测接入 lint runner（config 已有 `stale_check_on_lint`）
+- [~] 跨页矛盾检测（LLM 批处理，非确定性 — lint prompt 已引导）
+- [~] `lint --fix` 对 orphan 页自动补链（prompt 已写，需更多 E2E 验证）
+- [x] CI 门禁：`health_score < N` 时 exit non-zero（`--min-score` / exit 6）
+- [x] `lint --report lint-report.json`
 
 ### Shell / TUI
 
-- [ ] 流式输出（query 逐 token）
-- [ ] 会话持久化到 `~/.memoss/sessions/<vault-hash>.json`（跨进程恢复）
-- [ ] Obsidian / 浏览器一键打开引用页
+- [~] 流式输出（query step 文本 delta；非 token 级）
+- [x] 会话持久化到 `~/.memoss/sessions/<vault-hash>.json`（跨进程恢复）
+- [x] Obsidian / 浏览器一键打开引用页
 - [ ] 图片附件 ingest（Karpathy 本地下载图片工作流）
 - [ ] 语音输入适配
 
 ### Extract / Crawl Skills
 
-- [ ] `extract_kind: web-crawl` 多页输出契约（`.meta.json` pages 数组）
-- [ ] 官方 crawl skill 示例（crawl4ai / firecrawl 包装）
-- [ ] TUI 自然语言解析 `max_pages` / `allowed_hosts`
+- [x] `extract_kind: web-crawl` 多页输出契约（`.meta.json` pages 数组）
+- [x] 官方 crawl skill 示例（`schema-packs/data-catalog/.agents/skills/web-crawl/`）
+- [x] TUI 自然语言解析 `max_pages` / `allowed_hosts`
 
 ---
 

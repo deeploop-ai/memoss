@@ -19,6 +19,7 @@ import {
 import { resolveExtractRoute } from '../skills/router.js';
 import { contentHash, sourceToSlug } from '../skills/slug.js';
 import type { ExtractMeta } from '../skills/types.js';
+import { discoverCrawlPages, isCrawlOutputDir } from '../skills/crawl-meta.js';
 import { createExtractToolRegistry } from '../tools/extract-tools.js';
 import type { ExtractToolContext } from '../tools/extract-context.js';
 import { buildSystemPrompt, createPromptContext } from './context.js';
@@ -34,6 +35,7 @@ function buildExtractPrompt(opts: {
   outputPath: string;
   selectedSkill?: string;
   routeSource: string;
+  crawl?: ExtractRunOptions['crawl'];
 }): string {
   const lines = [
     'Extract the following source into markdown.',
@@ -48,6 +50,18 @@ function buildExtractPrompt(opts: {
     lines.push('', 'Activate that skill and follow its instructions.');
   } else {
     lines.push('', 'Choose the best skill from the catalog, then extract.');
+  }
+
+  if (opts.crawl) {
+    lines.push(
+      '',
+      `Crawl mode: max_pages=${opts.crawl.maxPages ?? 20}`,
+      opts.crawl.allowedHosts?.length
+        ? `allowed_hosts: ${opts.crawl.allowedHosts.join(', ')}`
+        : '',
+      'Write each fetched page under a directory named after the source slug.',
+      'For each page, optionally write a sidecar `<page>.url.txt` with the source URL.',
+    );
   }
 
   lines.push('', 'Write the final markdown to the output path before finishing.');
@@ -130,6 +144,42 @@ function persistExtractOutcome(
   }
 }
 
+function crawlMetaEnrichment(
+  vaultRoot: string,
+  outputDir: string,
+  source: string,
+  crawl?: ExtractRunOptions['crawl'],
+): Pick<ExtractMeta, 'pages' | 'crawl_budget'> {
+  const slug = sourceToSlug(source);
+  if (!isCrawlOutputDir(vaultRoot, outputDir, slug) && !crawl) {
+    return {};
+  }
+  const pages = discoverCrawlPages(vaultRoot, outputDir, slug);
+  if (pages.length === 0) {
+    return crawl
+      ? { crawl_budget: { max: crawl.maxPages ?? 20, used: 0 } }
+      : {};
+  }
+  return {
+    pages,
+    crawl_budget: {
+      max: crawl?.maxPages ?? pages.length,
+      used: pages.length,
+    },
+  };
+}
+
+function finalizeExtractMeta(
+  vaultRoot: string,
+  outputDir: string,
+  input: Parameters<typeof buildMetaFromOutput>[0],
+  crawl?: ExtractRunOptions['crawl'],
+): ExtractMeta {
+  const base = buildMetaFromOutput(input);
+  const extra = crawlMetaEnrichment(vaultRoot, outputDir, input.source, crawl);
+  return { ...base, ...extra };
+}
+
 function buildMetaFromOutput(input: {
   source: string;
   extractKind: ExtractRunResult['extractKind'];
@@ -139,11 +189,13 @@ function buildMetaFromOutput(input: {
   fastPath?: boolean;
   cached?: boolean;
   markdownPath: string;
+  pages?: ExtractMeta['pages'];
+  crawlBudget?: ExtractMeta['crawl_budget'];
 }): ExtractMeta {
   const text = readFileSync(input.markdownPath, 'utf8');
   return {
     source_uri: input.source,
-    extract_kind: input.extractKind,
+    extract_kind: input.pages?.length ? 'web-crawl' : input.extractKind,
     skill: input.skillName,
     skill_location: input.skillLocation,
     extracted_at: new Date().toISOString(),
@@ -151,6 +203,8 @@ function buildMetaFromOutput(input: {
     fallback: input.fallback,
     fast_path: input.fastPath,
     cached: input.cached,
+    pages: input.pages,
+    crawl_budget: input.crawlBudget,
   };
 }
 
@@ -337,15 +391,20 @@ export async function runExtract(
           vaultRoot: opts.vaultRoot,
           timeoutMs: config.extraction.bash_timeout_ms,
         });
-        const meta = buildMetaFromOutput({
-          source: opts.source,
-          extractKind,
-          skillName: skillRecord.name,
-          skillLocation: skillRecord.location,
-          fallback: false,
-          fastPath: true,
-          markdownPath,
-        });
+        const meta = finalizeExtractMeta(
+          opts.vaultRoot,
+          outputDir,
+          {
+            source: opts.source,
+            extractKind,
+            skillName: skillRecord.name,
+            skillLocation: skillRecord.location,
+            fallback: false,
+            fastPath: true,
+            markdownPath,
+          },
+          opts.crawl,
+        );
         persist(meta);
         return {
           status: 'complete',
@@ -412,6 +471,7 @@ export async function runExtract(
         outputPath: relativeMarkdown,
         selectedSkill,
         routeSource: route.source,
+        crawl: opts.crawl,
       }),
       tools,
       maxSteps: config.extraction.max_steps,
@@ -478,14 +538,19 @@ export async function runExtract(
     );
   }
 
-  const meta = buildMetaFromOutput({
-    source: opts.source,
-    extractKind,
-    skillName: skillRecord?.name,
-    skillLocation: skillRecord?.location,
-    fallback: false,
-    markdownPath,
-  });
+  const meta = finalizeExtractMeta(
+    opts.vaultRoot,
+    outputDir,
+    {
+      source: opts.source,
+      extractKind,
+      skillName: skillRecord?.name,
+      skillLocation: skillRecord?.location,
+      fallback: false,
+      markdownPath,
+    },
+    opts.crawl,
+  );
   persist(meta);
 
   return {

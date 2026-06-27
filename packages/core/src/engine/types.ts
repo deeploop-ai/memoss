@@ -73,6 +73,7 @@ export interface IngestRunOptions extends RunnerBaseOptions {
   skipTuning?: boolean;
   emphasis?: string;
   qualityOverlay?: string;
+  crawl?: ExtractRunOptions['crawl'];
   onWarning?: (message: string) => void;
 }
 
@@ -82,6 +83,10 @@ export interface ExtractRunOptions extends RunnerBaseOptions {
   skill?: string;
   onWarning?: (message: string) => void;
   noCache?: boolean;
+  crawl?: {
+    maxPages?: number;
+    allowedHosts?: string[];
+  };
 }
 
 export type ExtractRunStatus = 'complete' | 'incomplete' | 'skipped';
@@ -103,10 +108,15 @@ export interface ExtractRunResult {
 export interface QueryRunOptions extends RunnerBaseOptions {
   question: string;
   save?: boolean;
+  suggestSave?: boolean;
+  format?: 'default' | 'comparison';
+  onTextDelta?: (delta: string) => void;
 }
 
 export interface LintRunOptions extends RunnerBaseOptions {
   fix?: boolean;
+  minScore?: number;
+  reportPath?: string;
 }
 
 export type IngestRunStatus = AgentStatus | 'rejected';
@@ -126,4 +136,6 @@ export interface QueryRunResult extends AgentResult {
 export interface LintRunResult extends AgentResult {
   draftBranch?: string;
   diff?: string;
+  report?: import('../lint/report.js').LintReport;
+  minScoreFailed?: boolean;
 }

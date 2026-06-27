@@ -19,4 +19,22 @@ describe('classifyIntentFastPath', () => {
     const result = classifyIntentFastPath('批准刚才的 draft');
     expect(result?.proposal.task).toBe('approve');
   });
+
+  it('parses crawl params from ingest message', () => {
+    const result = classifyIntentFastPath(
+      '爬取 https://docs.example.com 最多 10 页 allowed_hosts docs.example.com',
+    );
+    expect(result?.proposal.task).toBe('ingest');
+    expect(result?.proposal.params.crawl).toEqual({
+      maxPages: 10,
+      allowedHosts: ['docs.example.com'],
+    });
+    expect(result?.proposal.params.skill).toBe('web-crawl');
+  });
+
+  it('detects comparison query format', () => {
+    const result = classifyIntentFastPath('对比 DDD 和 Clean Architecture');
+    expect(result?.proposal.task).toBe('query');
+    expect(result?.proposal.params.format).toBe('comparison');
+  });
 });

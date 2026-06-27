@@ -1,6 +1,8 @@
 import {
   buildSystemPrompt,
   createPromptContext,
+  QUERY_COMPARISON_INSTRUCTIONS,
+  QUERY_SAVE_HEURISTIC,
   QUERY_SAVE_INSTRUCTIONS,
 } from './context.js';
 import { pickTools, QUERY_SAVE_TOOL_NAMES, QUERY_TOOL_NAMES } from './pick-tools.js';
@@ -24,16 +26,24 @@ export async function runQuery(opts: QueryRunOptions): Promise<QueryRunResult> {
 
   const setup = createRunnerSetup({
     vaultRoot: opts.vaultRoot,
-    draftMode: false,
+    draftMode: opts.save ?? false,
   });
+
+  const extra: Record<string, string> = {};
+  if (opts.save) {
+    extra.save_instructions = QUERY_SAVE_INSTRUCTIONS;
+  } else if (opts.suggestSave) {
+    extra.save_instructions = QUERY_SAVE_HEURISTIC;
+  }
+  if (opts.format === 'comparison') {
+    extra.format_instructions = QUERY_COMPARISON_INSTRUCTIONS;
+  }
 
   const promptCtx = createPromptContext(opts.vaultRoot, setup.config);
   const system = buildSystemPrompt({
     ...promptCtx,
     prompt: 'query',
-    extra: opts.save
-      ? { save_instructions: QUERY_SAVE_INSTRUCTIONS }
-      : undefined,
+    extra,
   });
 
   const toolNames = opts.save ? QUERY_SAVE_TOOL_NAMES : QUERY_TOOL_NAMES;
@@ -49,6 +59,9 @@ export async function runQuery(opts: QueryRunOptions): Promise<QueryRunResult> {
     temperature: setup.config.agent.temperature,
     abortSignal: opts.abortSignal,
     onStepFinish: (step) => {
+      if (opts.onTextDelta && step.text) {
+        opts.onTextDelta(step.text);
+      }
       opts.onStepFinish?.(summarizeAgentStep(step, 0));
     },
   });

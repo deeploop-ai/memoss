@@ -67,6 +67,7 @@ export async function runIngest(
     skill: opts.skill,
     extract: opts.noExtract ? false : (opts.extract ?? 'auto'),
     noCache: opts.noCache,
+    crawl: opts.crawl,
     model: opts.model,
     abortSignal: opts.abortSignal,
     onStepFinish: opts.onStepFinish,

@@ -6,6 +6,7 @@ const PATH_PATTERN =
 
 const INGEST_VERBS =
   /(?:导入| ingest|ingest|添加|加入|收录|fetch|import|爬取|crawl|抓取)/i;
+const CRAWL_VERBS = /(?:爬取|crawl|抓取|spider|scrape site)/i;
 const QUERY_PREFIX =
   /^(?:什么是|是什么|what is|how|why|explain|解释|对比|compare|请问|？|\?)/i;
 const LINT_VERBS = /(?:lint|检查|健康|health|audit|审计)/i;
@@ -13,9 +14,59 @@ const APPROVE_VERBS = /(?:批准|approve|合并|merge|确认写入)/i;
 const REJECT_VERBS = /(?:拒绝|reject|discard|丢弃|放弃)/i;
 const STATUS_VERBS = /(?:status|状态|概况|统计)/i;
 
+export interface CrawlParams {
+  maxPages?: number;
+  allowedHosts?: string[];
+}
+
+export function parseCrawlParams(message: string): CrawlParams | undefined {
+  if (!CRAWL_VERBS.test(message)) {
+    return undefined;
+  }
+
+  const params: CrawlParams = {};
+
+  const maxMatch =
+    message.match(/(?:最多|上限|max[_\s-]?pages?)\s*[:：]?\s*(\d+)/i) ??
+    message.match(/(\d+)\s*(?:页|pages?)/i);
+  if (maxMatch?.[1]) {
+    params.maxPages = Number.parseInt(maxMatch[1], 10);
+  }
+
+  const hostsMatch = message.match(
+    /(?:allowed[_\s-]?hosts?|限定域名|仅允许|hosts?)\s*[:：]?\s*([^\n]+)/i,
+  );
+  if (hostsMatch?.[1]) {
+    params.allowedHosts = hostsMatch[1]
+      .split(/[,，\s]+/)
+      .map((h) => h.trim())
+      .filter(Boolean);
+  }
+
+  return params;
+}
+
 export interface FastPathResult {
   proposal: ShellTaskProposal;
   confidence: 'high' | 'medium';
+}
+
+function buildIngestParams(
+  source: string,
+  message: string,
+): Record<string, unknown> {
+  const crawl = parseCrawlParams(message);
+  if (crawl) {
+    return {
+      source,
+      crawl: {
+        maxPages: crawl.maxPages,
+        allowedHosts: crawl.allowedHosts,
+      },
+      skill: 'web-crawl',
+    };
+  }
+  return { source };
 }
 
 export function classifyIntentFastPath(message: string): FastPathResult | undefined {
@@ -30,7 +81,7 @@ export function classifyIntentFastPath(message: string): FastPathResult | undefi
       confidence: 'high',
       proposal: {
         task: 'ingest',
-        params: { source: urlMatch[0] },
+        params: buildIngestParams(urlMatch[0], trimmed),
         rationale: 'URL + ingest verb detected',
       },
     };
@@ -41,7 +92,7 @@ export function classifyIntentFastPath(message: string): FastPathResult | undefi
       confidence: 'medium',
       proposal: {
         task: 'ingest',
-        params: { source: urlMatch[0] },
+        params: buildIngestParams(urlMatch[0], trimmed),
         rationale: 'Bare URL — defaulting to ingest',
       },
     };
@@ -53,7 +104,7 @@ export function classifyIntentFastPath(message: string): FastPathResult | undefi
       confidence: 'high',
       proposal: {
         task: 'ingest',
-        params: { source: pathMatch[1] },
+        params: buildIngestParams(pathMatch[1], trimmed),
         rationale: 'File path + ingest verb detected',
       },
     };
@@ -91,6 +142,7 @@ export function classifyIntentFastPath(message: string): FastPathResult | undefi
     };
   }
 
+  const isComparison = /(?:对比|compare|vs\.?|versus)/i.test(trimmed);
   if (QUERY_PREFIX.test(trimmed) || trimmed.endsWith('?') || trimmed.endsWith('？')) {
     return {
       confidence: 'high',
@@ -99,6 +151,7 @@ export function classifyIntentFastPath(message: string): FastPathResult | undefi
         params: {
           question: trimmed,
           save: /保存|save|写入 notes|file back/i.test(trimmed),
+          format: isComparison ? 'comparison' : 'default',
         },
         rationale: 'Question shape',
       },

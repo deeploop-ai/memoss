@@ -18,6 +18,7 @@ export interface ActivatedSkill {
 
 export type ExtractKind =
   | 'web'
+  | 'web-crawl'
   | 'github'
   | 'pdf'
   | 'markdown'
@@ -50,4 +51,13 @@ export interface ExtractMeta {
   fallback: boolean;
   fast_path?: boolean;
   cached?: boolean;
+  pages?: Array<{
+    url: string;
+    path: string;
+    content_hash?: string;
+  }>;
+  crawl_budget?: {
+    max: number;
+    used: number;
+  };
 }

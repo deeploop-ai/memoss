@@ -11,7 +11,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MemossError } from '@memoss/core';
 
-export type SchemaPackName = 'research' | 'personal';
+export type SchemaPackName = 'research' | 'personal' | 'data-catalog';
 
 const TOKEN_PATTERN = /\{\{(name|description|date)\}\}/g;
 

@@ -9,7 +9,7 @@ export {
 export { runIngest } from './ingest-runner.js';
 export { runExtract, resolveIngestSource } from './extract-runner.js';
 export { runQuery } from './query-runner.js';
-export { runLint } from './lint-runner.js';
+export { runLint, runLintDeterministic } from './lint-runner.js';
 export { runValidate } from './validate-runner.js';
 export { runTuningPass } from './tuning-runner.js';
 export type { TuningRunOptions, TuningRunResult } from './tuning-runner.js';

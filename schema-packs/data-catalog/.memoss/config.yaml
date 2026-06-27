@@ -1,0 +1,47 @@
+name: {{name}}
+description: "{{description}}"
+mode: wiki
+okf_version: "0.1"
+schema_pack: data-catalog
+
+agent:
+  default_model:
+    provider: anthropic
+    model: claude-sonnet-4-6
+  flash_model:
+    provider: anthropic
+    model: claude-haiku-4-5
+  max_steps: 50
+  temperature: 0.3
+
+policies:
+  augment:
+    preserve_headings: error
+    preserve_resource_field: error
+    body_shrink_action: warn
+  reference_mint:
+    gate_mode: warn
+  citation:
+    require_section: warn
+  provenance:
+    track_affects: true
+    stale_check_on_lint: warn
+
+git:
+  enabled: true
+  auto_commit: true
+  draft_branch: true
+
+search:
+  strategy: auto
+  hybrid_threshold_pages: 200
+
+provenance:
+  enabled: true
+  track_source_hash: true
+
+extraction:
+  enabled: true
+  auto_select: true
+  skills:
+    web-crawl: crawl4ai

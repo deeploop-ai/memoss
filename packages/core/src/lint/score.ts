@@ -8,6 +8,12 @@ const WEIGHTS: Record<string, number> = {
   REFERENCE_SLUG_BLOCKED: 8,
   HEADINGS_NOT_PRESERVED: 15,
   CONTRADICTION: 15,
+  STALE_SOURCE_REINGEST: 6,
+  STALE_VERIFIED_AT: 4,
+  METRIC_MISSING_SQL: 12,
+  JOIN_MISSING_ON: 12,
+  TABLE_MISSING_SCHEMA: 5,
+  METRICS_SECTION_UNLINKED: 2,
 };
 
 export function computeHealthScore(issues: LintIssue[], pageCount: number): number {

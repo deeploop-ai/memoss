@@ -12,6 +12,10 @@ Audit this knowledge base for quality issues. Produce a structured lint report.
 
 {{schema_overlay}}
 
+## Deterministic baseline (already computed)
+
+{{deterministic_lint}}
+
 ## Workflow
 
 1. `list_pages` to enumerate all pages.
