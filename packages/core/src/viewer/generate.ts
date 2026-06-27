@@ -32,11 +32,15 @@ export function generateGraphHtml(opts: GenerateGraphHtmlOptions): GraphGenerati
   const js = loadAsset('viz.js');
   const name = opts.bundleName ?? basename(bundleRoot);
 
+  const bundleNameJson = embedJsonInScript(name);
+  const bundleDataJson = embedJsonInScript(graph);
+
   const html = template
     .replace('/*__VIZ_CSS__*/', css)
     .replace('/*__VIZ_JS__*/', js)
-    .replace('__BUNDLE_NAME__', embedJsonInScript(name))
-    .replace('__BUNDLE_DATA__', embedJsonInScript(graph));
+    // Use function replacers so `$'`, `$&`, etc. in JSON/LaTeX are not interpreted.
+    .replace('__BUNDLE_NAME__', () => bundleNameJson)
+    .replace('__BUNDLE_DATA__', () => bundleDataJson);
 
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, html, 'utf8');

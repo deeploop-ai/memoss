@@ -109,6 +109,12 @@ export {
   resolveSchemaPacksRoot,
   type SchemaPackName,
 } from './schema-pack/resolve-root.js';
+export {
+  listSchemaPacks,
+  runSwitchSchemaPack,
+  type SwitchSchemaPackOptions,
+  type SwitchSchemaPackReport,
+} from './schema-pack/switch-pack.js';
 export { runMigrate, type MigrateOptions, type MigrateReport } from './migrate/runner.js';
 export {
   discoverRebuildSources,

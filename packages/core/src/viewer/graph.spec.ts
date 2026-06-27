@@ -37,6 +37,26 @@ describe('generateGraphHtml', () => {
     }
   });
 
+  it('does not interpret $\' in embedded bundle JSON as a replace pattern', () => {
+    const outDir = mkdtempSync(join(tmpdir(), 'memoss-viewer-'));
+    tempDirs.push(outDir);
+    const bundleRoot = join(outDir, 'bundle');
+    const conceptDir = join(bundleRoot, 'topics');
+    mkdirSync(conceptDir, { recursive: true });
+    writeFileSync(
+      join(conceptDir, 'latex.md'),
+      "---\ntitle: LaTeX\ntype: Topic\n---\nAdd noise to the subject $s$'s embedding.\n",
+      'utf8',
+    );
+
+    const outPath = join(outDir, 'viz.html');
+    generateGraphHtml({ bundleRoot, outPath, bundleName: 'test' });
+
+    const html = readFileSync(outPath, 'utf8');
+    expect(html).toContain("$s$'s embedding");
+    expect(html.match(/<\/script>/g)?.length).toBe(4);
+  });
+
   it('escapes </script> in embedded bundle JSON', () => {
     const outDir = mkdtempSync(join(tmpdir(), 'memoss-viewer-'));
     tempDirs.push(outDir);
