@@ -1,10 +1,9 @@
 import { defineCommand } from 'citty';
 import { consola } from 'consola';
-import { pathToFileURL } from 'node:url';
-import open from 'open';
 import { join } from 'pathe';
 import { generateGraphHtml, loadVaultConfig } from '@memoss/core';
 import { resolveVaultRoot } from '../utils/vault.js';
+import { openInDefaultBrowser } from '../utils/open-browser.js';
 
 export const graphCommand = defineCommand({
   meta: {
@@ -43,7 +42,8 @@ export const graphCommand = defineCommand({
     );
 
     if (!args.noOpen) {
-      await open(pathToFileURL(output).href);
+      await openInDefaultBrowser(output);
+      consola.info('Opened graph in your default browser.');
     }
   },
 });
