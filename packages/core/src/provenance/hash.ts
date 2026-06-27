@@ -1,1 +1,1 @@
-export { contentHash, sourceToSlug } from '../skills/slug.js';
+export { contentHash, sourceManifestId, sourceToSlug } from '../skills/slug.js';

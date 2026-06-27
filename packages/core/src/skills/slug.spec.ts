@@ -31,6 +31,21 @@ describe('sourceToSlug', () => {
     expect(sourceToSlug('/tmp/report.pdf')).toBe('report');
   });
 
+  it('includes content hash suffix for local files when provided', () => {
+    const slug = sourceToSlug('D:/tmp/llm.pdf', {
+      contentHash: 'sha256:abcdef0123456789deadbeef',
+    });
+    expect(slug).toBe('llm-abcdef0123');
+    expect(sourceToSlug('E:/docs/llm.pdf', { contentHash: 'sha256:abcdef0123456789deadbeef' })).toBe(
+      slug,
+    );
+    expect(
+      sourceToSlug('E:/docs/llm.pdf', {
+        contentHash: 'sha256:0000000000000000000000000000000000000000000000000000000000000001',
+      }),
+    ).not.toBe(slug);
+  });
+
   it('hashes very long query strings', () => {
     const longQuery = `http://domain/article?${'x'.repeat(80)}=1`;
     const slug = sourceToSlug(longQuery);

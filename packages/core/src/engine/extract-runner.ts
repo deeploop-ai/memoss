@@ -12,6 +12,7 @@ import {
 } from '../skills/archive-original.js';
 import {
   buildExtractCacheKey,
+  isExtractCacheFresh,
   readExtractCache,
   writeExtractCache,
 } from '../skills/extract-cache.js';
@@ -23,6 +24,7 @@ import {
 } from '../skills/extract-relevant.js';
 import { resolveExtractRoute } from '../skills/router.js';
 import { contentHash, sourceToSlug } from '../skills/slug.js';
+import { tryHashLocalSource } from '../skills/source-identity.js';
 import type { ExtractMeta } from '../skills/types.js';
 import { discoverCrawlPages, isCrawlOutputDir } from '../skills/crawl-meta.js';
 import { createExtractToolRegistry } from '../tools/extract-tools.js';
@@ -77,8 +79,9 @@ function resolveOutputPaths(
   vaultRoot: string,
   outputDir: string,
   source: string,
+  sourceContentHash?: string,
 ): { markdownPath: string; metaPath: string; relativeMarkdown: string } {
-  const slug = sourceToSlug(source);
+  const slug = sourceToSlug(source, { contentHash: sourceContentHash });
   const relativeMarkdown = join(outputDir, `${slug}.md`).replace(/\\/g, '/');
   const relativeMeta = join(outputDir, `${slug}.meta.json`).replace(/\\/g, '/');
   return {
@@ -112,6 +115,7 @@ function persistExtractOutcome(
     meta: ExtractMeta;
     skills: Map<string, import('../skills/types.js').SkillRecord>;
     noCache?: boolean;
+    sourceContentHash?: string;
   },
 ): void {
   writeExtractMeta(input.metaPath, input.meta);
@@ -133,6 +137,7 @@ function persistExtractOutcome(
       sourceUri: input.source,
       route: input.route,
       skill: skillRecord,
+      sourceContentHash: input.sourceContentHash,
     });
     writeExtractCache(vaultRoot, {
       cache_key: cacheKey,
@@ -154,8 +159,9 @@ function crawlMetaEnrichment(
   outputDir: string,
   source: string,
   crawl?: ExtractRunOptions['crawl'],
+  sourceContentHash?: string,
 ): Pick<ExtractMeta, 'pages' | 'crawl_budget'> {
-  const slug = sourceToSlug(source);
+  const slug = sourceToSlug(source, { contentHash: sourceContentHash });
   if (!isCrawlOutputDir(vaultRoot, outputDir, slug) && !crawl) {
     return {};
   }
@@ -179,9 +185,16 @@ function finalizeExtractMeta(
   outputDir: string,
   input: Parameters<typeof buildMetaFromOutput>[0],
   crawl?: ExtractRunOptions['crawl'],
+  sourceContentHash?: string,
 ): ExtractMeta {
   const base = buildMetaFromOutput(input);
-  const extra = crawlMetaEnrichment(vaultRoot, outputDir, input.source, crawl);
+  const extra = crawlMetaEnrichment(
+    vaultRoot,
+    outputDir,
+    input.source,
+    crawl,
+    sourceContentHash,
+  );
   return { ...base, ...extra };
 }
 
@@ -242,10 +255,12 @@ export async function runExtract(
   }
 
   const outputDir = config.extraction.output_dir;
+  const sourceContentHash = tryHashLocalSource(opts.source, opts.vaultRoot);
   const { markdownPath, metaPath, relativeMarkdown } = resolveOutputPaths(
     opts.vaultRoot,
     outputDir,
     opts.source,
+    sourceContentHash,
   );
 
   const { skills, warnings } = discoverSkills({
@@ -268,9 +283,10 @@ export async function runExtract(
       sourceUri: opts.source,
       route,
       skill: skillRecord,
+      sourceContentHash,
     });
     const cached = readExtractCache(opts.vaultRoot, cacheKey);
-    if (cached) {
+    if (cached && isExtractCacheFresh(cached, sourceContentHash)) {
       return {
         status: 'complete',
         source: opts.source,
@@ -311,6 +327,7 @@ export async function runExtract(
       meta: mergeArchiveIntoMeta(meta, sourceArchive),
       skills,
       noCache: opts.noCache,
+      sourceContentHash,
     });
   };
 
@@ -423,6 +440,7 @@ export async function runExtract(
             markdownPath,
           },
           opts.crawl,
+          sourceContentHash,
         );
         persist(meta);
         return {
@@ -569,6 +587,7 @@ export async function runExtract(
       markdownPath,
     },
     opts.crawl,
+    sourceContentHash,
   );
   persist(meta);
 

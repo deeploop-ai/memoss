@@ -1,4 +1,5 @@
 import { registerIngestProvenance } from '../provenance/manifest.js';
+import { tryHashLocalSource } from '../skills/source-identity.js';
 import { MemossError } from '../errors.js';
 import { buildSystemPrompt, createPromptContext } from './context.js';
 import { resolveIngestSource } from './extract-runner.js';
@@ -173,6 +174,9 @@ export async function runIngest(
   if (trackProvenance && agentResult.status === 'complete') {
     registerIngestProvenance(opts.vaultRoot, {
       sourceUri: resolved.originalSource,
+      rawContentHash:
+        resolved.extractMeta?.raw_content_hash ??
+        tryHashLocalSource(resolved.originalSource, opts.vaultRoot),
       affects,
     });
   }

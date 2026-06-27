@@ -14,6 +14,8 @@ import {
   maybeArchiveOriginal,
   shouldArchiveOriginal,
 } from './archive-original.js';
+import { hashFileContent } from './source-identity.js';
+import { sourceToSlug } from './slug.js';
 
 const tempDirs: string[] = [];
 
@@ -108,9 +110,39 @@ describe('maybeArchiveOriginal', () => {
     });
 
     expect(archive?.copied).toBe(true);
-    expect(archive?.raw_path).toBe('sources/raw/notes.pdf');
-    const archived = join(vaultRoot, 'sources', 'raw', 'notes.pdf');
+    const rawHash = hashFileContent(externalPdf);
+    const expectedSlug = sourceToSlug(externalPdf, { contentHash: rawHash });
+    expect(archive?.raw_path).toBe(`sources/raw/${expectedSlug}.pdf`);
+    const archived = join(vaultRoot, 'sources', 'raw', `${expectedSlug}.pdf`);
     expect(readFileSync(archived, 'utf8')).toBe('%PDF-1.4 external');
+  });
+
+  it('uses distinct raw paths for same-named files with different bytes', async () => {
+    const vaultRoot = makeVault();
+    const externalDir = mkdtempSync(join(tmpdir(), 'memoss-external-'));
+    tempDirs.push(externalDir);
+    const fileA = join(externalDir, 'llm.pdf');
+    const fileB = join(externalDir, 'subdir', 'llm.pdf');
+    mkdirSync(join(externalDir, 'subdir'), { recursive: true });
+    writeFileSync(fileA, '%PDF-1.4 version-a');
+    writeFileSync(fileB, '%PDF-1.4 version-b');
+
+    const archiveA = await maybeArchiveOriginal({
+      vaultRoot,
+      source: fileA,
+      extractKind: 'pdf',
+      config: { archive_original: 'auto', raw_dir: 'sources/raw' },
+    });
+    const archiveB = await maybeArchiveOriginal({
+      vaultRoot,
+      source: fileB,
+      extractKind: 'pdf',
+      config: { archive_original: 'auto', raw_dir: 'sources/raw' },
+    });
+
+    expect(archiveA?.raw_path).not.toBe(archiveB?.raw_path);
+    expect(existsSync(join(vaultRoot, archiveA!.raw_path))).toBe(true);
+    expect(existsSync(join(vaultRoot, archiveB!.raw_path))).toBe(true);
   });
 
   it('skips plain markdown files in auto mode', async () => {

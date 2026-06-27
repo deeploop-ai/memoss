@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   buildExtractCacheKey,
+  isExtractCacheFresh,
   readExtractCache,
   writeExtractCache,
 } from './extract-cache.js';
@@ -48,5 +49,43 @@ describe('extract cache', () => {
 
     const cached = readExtractCache(vaultRoot, cacheKey);
     expect(cached?.output_path).toBe(outputPath);
+  });
+
+  it('changes cache key when local source content hash changes', () => {
+    const route = { mode: 'fallback' as const, source: 'fallback' as const };
+    const keyA = buildExtractCacheKey({
+      sourceUri: 'D:/tmp/llm.pdf',
+      route,
+      sourceContentHash: 'sha256:aaa',
+    });
+    const keyB = buildExtractCacheKey({
+      sourceUri: 'D:/tmp/llm.pdf',
+      route,
+      sourceContentHash: 'sha256:bbb',
+    });
+    expect(keyA).not.toBe(keyB);
+  });
+
+  it('rejects stale cache records when raw hash differs', () => {
+    const record = {
+      cache_key: 'abc',
+      source_uri: 'D:/tmp/llm.pdf',
+      skill_key: 'fallback',
+      output_path: '/tmp/out.md',
+      meta_path: '/tmp/out.meta.json',
+      meta: {
+        source_uri: 'D:/tmp/llm.pdf',
+        extract_kind: 'pdf' as const,
+        extracted_at: '2026-06-26T10:00:00.000Z',
+        content_hash: 'sha256:abc',
+        fallback: true,
+        raw_content_hash: 'sha256:old',
+      },
+      cached_at: '2026-06-26T10:00:00.000Z',
+    };
+
+    expect(isExtractCacheFresh(record, 'sha256:old')).toBe(true);
+    expect(isExtractCacheFresh(record, 'sha256:new')).toBe(false);
+    expect(isExtractCacheFresh(record)).toBe(true);
   });
 });

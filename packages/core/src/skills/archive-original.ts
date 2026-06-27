@@ -1,14 +1,13 @@
-import { createHash } from 'node:crypto';
 import {
   copyFileSync,
   existsSync,
   mkdirSync,
-  readFileSync,
   writeFileSync,
 } from 'node:fs';
-import { dirname, extname, isAbsolute, join, resolve, sep } from 'node:path';
+import { dirname, extname, join, resolve, sep } from 'node:path';
 import type { ExtractionConfig } from '../config/vault-config.js';
 import { MemossError } from '../errors.js';
+import { hashBuffer, hashFileContent, isHttpSource, resolveLocalSourcePath } from './source-identity.js';
 import { sourceToSlug } from './slug.js';
 import type { ExtractKind } from './types.js';
 
@@ -58,20 +57,12 @@ const MIME_EXTENSION: Record<string, string> = {
   'application/json': '.json',
 };
 
-function bufferHash(buffer: Buffer): string {
-  return `sha256:${createHash('sha256').update(buffer).digest('hex')}`;
-}
-
 function fileHash(path: string): string {
-  return bufferHash(readFileSync(path));
-}
-
-function isHttpSource(source: string): boolean {
-  return /^https?:\/\//i.test(source);
+  return hashFileContent(path);
 }
 
 function resolveLocalPath(source: string, vaultRoot: string): string {
-  return isAbsolute(source) ? resolve(source) : resolve(vaultRoot, source);
+  return resolveLocalSourcePath(source, vaultRoot);
 }
 
 function isInsideVault(vaultRoot: string, filePath: string): boolean {
@@ -150,8 +141,9 @@ function resolveRawFilename(
   source: string,
   extractKind: ExtractKind,
   contentType: string | null,
+  contentHash?: string,
 ): string {
-  const slug = sourceToSlug(source);
+  const slug = sourceToSlug(source, { contentHash });
   const fromMime = extensionFromMime(contentType);
   if (fromMime) {
     return `${slug}${fromMime}`;
@@ -231,10 +223,12 @@ async function archiveHttpSource(input: {
   }
 
   const buffer = Buffer.from(await response.arrayBuffer());
+  const rawContentHash = hashBuffer(buffer);
   const filename = resolveRawFilename(
     input.source,
     input.extractKind,
     response.headers.get('content-type'),
+    rawContentHash,
   );
   const relativeRaw = join(input.rawDir, filename).replace(/\\/g, '/');
   const dest = resolve(input.vaultRoot, relativeRaw);
@@ -243,7 +237,7 @@ async function archiveHttpSource(input: {
 
   return {
     raw_path: relativeRaw,
-    raw_content_hash: bufferHash(buffer),
+    raw_content_hash: rawContentHash,
     copied: true,
   };
 }
@@ -268,7 +262,8 @@ function archiveLocalSource(input: {
   }
 
   const ext = localExtension(input.source) || '.bin';
-  const slug = sourceToSlug(input.source);
+  const rawContentHash = fileHash(absolute);
+  const slug = sourceToSlug(input.source, { contentHash: rawContentHash });
   const relativeRaw = join(input.rawDir, `${slug}${ext}`).replace(/\\/g, '/');
   const dest = resolve(input.vaultRoot, relativeRaw);
   mkdirSync(dirname(dest), { recursive: true });
@@ -276,7 +271,7 @@ function archiveLocalSource(input: {
 
   return {
     raw_path: relativeRaw,
-    raw_content_hash: fileHash(dest),
+    raw_content_hash: rawContentHash,
     copied: true,
   };
 }

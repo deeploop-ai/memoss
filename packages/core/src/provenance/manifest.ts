@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
-import { sourceToSlug } from './hash.js';
+import { sourceManifestId } from './hash.js';
 import type { ExtractMeta } from '../skills/types.js';
 
 export interface SourceManifestEntry {
@@ -83,7 +83,7 @@ export function registerExtractProvenance(
     : input.extractedPath;
 
   return upsertSourceManifestEntry(vaultRoot, {
-    id: sourceToSlug(input.sourceUri),
+    id: sourceManifestId(input.sourceUri, input.meta.raw_content_hash),
     uri: input.sourceUri,
     fetched_at: input.meta.extracted_at,
     content_hash: input.meta.content_hash,
@@ -98,11 +98,12 @@ export function registerIngestProvenance(
   vaultRoot: string,
   input: {
     sourceUri: string;
+    rawContentHash?: string;
     ingested_at?: string;
     affects?: string[];
   },
 ): SourceManifestEntry {
-  const id = sourceToSlug(input.sourceUri);
+  const id = sourceManifestId(input.sourceUri, input.rawContentHash);
   const existing = loadSourceManifest(vaultRoot).sources.find(
     (item) => item.id === id,
   );

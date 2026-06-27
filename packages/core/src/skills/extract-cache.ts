@@ -27,14 +27,28 @@ export function buildExtractCacheKey(input: {
   sourceUri: string;
   route: ExtractRoute;
   skill?: SkillRecord;
+  sourceContentHash?: string;
 }): string {
   const skillKey =
     input.route.mode === 'skill'
       ? input.route.skillName ?? 'skill'
       : input.route.mode;
   const skillMtime = input.skill ? String(getSkillMtime(input.skill)) : '0';
-  const raw = `${input.sourceUri}|${skillKey}|${skillMtime}`;
+  const raw = `${input.sourceUri}|${input.sourceContentHash ?? ''}|${skillKey}|${skillMtime}`;
   return createHash('sha256').update(raw, 'utf8').digest('hex');
+}
+
+export function isExtractCacheFresh(
+  record: ExtractCacheRecord,
+  sourceContentHash?: string,
+): boolean {
+  if (!sourceContentHash) {
+    return true;
+  }
+  if (!record.meta.raw_content_hash) {
+    return false;
+  }
+  return record.meta.raw_content_hash === sourceContentHash;
 }
 
 export function readExtractCache(

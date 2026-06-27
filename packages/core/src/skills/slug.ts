@@ -37,7 +37,12 @@ function queryToSlugPart(search: string): string {
   return `q-${createHash('sha256').update(search).digest('hex').slice(0, 10)}`;
 }
 
-export function sourceToSlug(source: string): string {
+export interface SourceSlugOptions {
+  /** Raw source bytes hash (`sha256:...`) to distinguish same-named local files. */
+  contentHash?: string;
+}
+
+export function sourceToSlug(source: string, options?: SourceSlugOptions): string {
   if (/^https?:\/\//i.test(source)) {
     try {
       const url = new URL(source);
@@ -56,7 +61,19 @@ export function sourceToSlug(source: string): string {
   }
 
   const name = basename(source, extname(source));
-  return sanitizeSlug(name);
+  const base = sanitizeSlug(name);
+  if (options?.contentHash) {
+    const digest = options.contentHash.replace(/^sha256:/, '').slice(0, 10);
+    return sanitizeSlug(`${base}-${digest}`);
+  }
+  return base;
+}
+
+export function sourceManifestId(
+  sourceUri: string,
+  rawContentHash?: string,
+): string {
+  return sourceToSlug(sourceUri, { contentHash: rawContentHash });
 }
 
 function sanitizeSlug(value: string): string {
