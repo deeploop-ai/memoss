@@ -26,7 +26,9 @@ Convert the source material into clean, readable Markdown and write it to the ou
 
 - **Non-interactive only.** Never run commands that prompt for input.
 - **No vault edits.** Only write under `sources/extracted/`.
-- **Prefer files over huge stdout.** Save large content to the output file.
+- **Markdown only in sources/extracted/.** Never write scripts (`.py`, `.sh`, `.js`), temp text (`.txt`), or metadata (`.json`) there. Run scripts from a temp directory via `bash`, then call `write_file` with the final markdown.
+- **Use the exact output path.** Call `write_file` with `{{output_path}}` for the final result. Do not rely on bash to write into `sources/extracted/`.
+- **Prefer files over huge stdout.** Save large content with `write_file`, not stdout.
 - If no suitable skill exists and you cannot extract, explain why clearly.
 - Resolve skill-relative paths against the skill `baseDir` returned by `activate_skill`.
 

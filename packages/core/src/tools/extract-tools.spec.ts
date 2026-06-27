@@ -2,6 +2,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
+import { MemossError } from '../errors.js';
 import { createDefaultVaultConfig } from '../config/vault-config.js';
 import type { ExtractToolContext } from './extract-context.js';
 import { createExtractWriteFileTool } from './extract-tools.js';
@@ -56,5 +57,31 @@ describe('createExtractWriteFileTool', () => {
 
     const expected = resolve(ctx.vaultRoot, ctx.outputDir, 'example-com-article.md');
     expect(readFileSync(expected, 'utf8')).toBe('# Article');
+  });
+
+  it('rejects script files under sources/extracted', async () => {
+    const ctx = createExtractContext();
+    const writeFile = createExtractWriteFileTool(ctx);
+
+    await expect(
+      writeFile.execute!(
+        { path: 'extract_pdf.py', content: 'print(1)' },
+        { toolCallId: 'test', messages: [] },
+      ),
+    ).rejects.toThrow(MemossError);
+  });
+
+  it('tracks written markdown paths on success', async () => {
+    const ctx = createExtractContext();
+    const writeFile = createExtractWriteFileTool(ctx);
+
+    await writeFile.execute!(
+      { path: 'example-com-article.md', content: '# Article' },
+      { toolCallId: 'test', messages: [] },
+    );
+
+    expect(ctx.writtenMarkdownPaths).toEqual([
+      'sources/extracted/example-com-article.md',
+    ]);
   });
 });

@@ -7,5 +7,7 @@ export interface ExtractToolContext {
   skills: Map<string, SkillRecord>;
   outputDir: string;
   sourceUri: string;
+  expectedOutputPath?: string;
+  writtenMarkdownPaths?: string[];
   activeSkillBaseDir?: string;
 }

@@ -4,6 +4,10 @@ import { dirname, isAbsolute, relative, resolve } from 'node:path';
 import { z } from 'zod';
 import { tool, type Tool } from 'ai';
 import { MemossError } from '../errors.js';
+import {
+  extractAgentOutputRejectReason,
+  isAllowedExtractAgentOutput,
+} from '../extraction/output-policy.js';
 import { activateSkill, findSkillByName } from '../skills/activate.js';
 import type { ExtractToolContext } from './extract-context.js';
 
@@ -26,8 +30,10 @@ const readFileSchema = z.object({
 const writeFileSchema = z.object({
   path: z
     .string()
-    .describe('Output path (must be under sources/extracted/)'),
-  content: z.string().describe('File content'),
+    .describe(
+      'Final markdown output path (.md only, under sources/extracted/)',
+    ),
+  content: z.string().describe('Markdown file content'),
 });
 
 const MAX_BASH_OUTPUT = 32 * 1024;
@@ -88,6 +94,15 @@ function resolveWritablePath(ctx: ExtractToolContext, inputPath: string): string
       `Write not allowed outside ${ctx.outputDir}: ${inputPath}`,
     );
   }
+
+  const relativePath = relative(vaultRoot, absolute).replace(/\\/g, '/');
+  if (!isAllowedExtractAgentOutput(relativePath)) {
+    throw new MemossError(
+      'EXTRACT_ERROR',
+      extractAgentOutputRejectReason(relativePath),
+    );
+  }
+
   return absolute;
 }
 
@@ -168,7 +183,8 @@ export function createActivateSkillTool(ctx: ExtractToolContext): Tool {
 
 export function createBashTool(ctx: ExtractToolContext): Tool {
   return tool({
-    description: 'Run a non-interactive shell command.',
+    description:
+      'Run a non-interactive shell command. Do not write scripts or temp files under sources/extracted/ — use OS temp paths for intermediates.',
     inputSchema: bashSchema,
     execute: async ({ command, cwd }) => {
       const workingDir = cwd
@@ -210,19 +226,23 @@ export function createExtractReadFileTool(ctx: ExtractToolContext): Tool {
 
 export function createExtractWriteFileTool(ctx: ExtractToolContext): Tool {
   return tool({
-    description: 'Write extracted markdown to sources/extracted/.',
+    description:
+      'Write the final extracted markdown (.md only) to sources/extracted/.',
     inputSchema: writeFileSchema,
     execute: async ({ path, content }) => {
       const absolute = resolveWritablePath(ctx, path);
       mkdirSync(dirname(absolute), { recursive: true });
       writeFileSync(absolute, content, 'utf8');
+      const relativePath = relative(resolve(ctx.vaultRoot), absolute).replace(
+        /\\/g,
+        '/',
+      );
+      ctx.writtenMarkdownPaths ??= [];
+      ctx.writtenMarkdownPaths.push(relativePath);
       return {
         path: absolute,
         bytes: Buffer.byteLength(content, 'utf8'),
-        relativePath: relative(resolve(ctx.vaultRoot), absolute).replace(
-          /\\/g,
-          '/',
-        ),
+        relativePath,
       };
     },
   });

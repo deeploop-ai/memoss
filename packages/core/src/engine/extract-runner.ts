@@ -28,6 +28,11 @@ import { tryHashLocalSource } from '../skills/source-identity.js';
 import type { ExtractMeta } from '../skills/types.js';
 import { discoverCrawlPages, isCrawlOutputDir } from '../skills/crawl-meta.js';
 import { checkSourceContent } from '../validation/content-heuristics.js';
+import { cleanupExtractArtifacts } from '../extraction/cleanup-artifacts.js';
+import {
+  normalizeExtractOutputPath,
+  resolveExtractMarkdownOutput,
+} from '../extraction/resolve-output.js';
 import { createExtractToolRegistry } from '../tools/extract-tools.js';
 import type { ExtractToolContext } from '../tools/extract-context.js';
 import { buildSystemPrompt, createPromptContext } from './context.js';
@@ -73,6 +78,9 @@ function buildExtractPrompt(opts: {
   }
 
   lines.push('', 'Write the final markdown to the output path before finishing.');
+  lines.push(
+    'Use `write_file` for the final markdown at the exact output path — do not write scripts or temp files under sources/extracted/.',
+  );
   return lines.join('\n');
 }
 
@@ -512,6 +520,7 @@ export async function runExtract(
     skills: route.mode === 'auto' ? skillsForExtract : skills,
     outputDir,
     sourceUri: opts.source,
+    expectedOutputPath: relativeMarkdown,
   };
 
   const tools = createExtractToolRegistry(extractCtx);
@@ -568,6 +577,25 @@ export async function runExtract(
       };
     }
     throw error;
+  }
+
+  const artifactCleanup = cleanupExtractArtifacts(opts.vaultRoot, outputDir);
+  for (const removed of artifactCleanup.removed) {
+    opts.onWarning?.(`Removed extract artifact: ${removed}`);
+  }
+
+  if (!existsSync(markdownPath)) {
+    const discovered = resolveExtractMarkdownOutput(
+      opts.vaultRoot,
+      outputDir,
+      markdownPath,
+    );
+    if (discovered) {
+      normalizeExtractOutputPath(markdownPath, discovered);
+      opts.onWarning?.(
+        `Extract agent wrote markdown outside the canonical output path; normalized to ${relativeMarkdown}.`,
+      );
+    }
   }
 
   if (!existsSync(markdownPath)) {
