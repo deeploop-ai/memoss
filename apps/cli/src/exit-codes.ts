@@ -6,6 +6,7 @@ export const ExitCode = {
   LINT_ERRORS: 4,
   INGEST_REJECTED: 5,
   LINT_SCORE: 6,
+  EXTRACT_NEEDS_REVIEW: 7,
 } as const;
 
 export type ExitCodeValue = (typeof ExitCode)[keyof typeof ExitCode];

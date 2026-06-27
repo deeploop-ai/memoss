@@ -123,7 +123,12 @@ export {
 export { runShellAgentTurn } from './shell/shell-runner.js';
 export { executeShellTask } from './shell/dispatch.js';
 export { parsePoliciesConfig, type PoliciesConfig } from './policies/config.js';
-export { checkSourceContent, type ContentHeuristicResult } from './validation/content-heuristics.js';
+export {
+  analyzeLineStructure,
+  checkSourceContent,
+  type ContentHeuristicResult,
+  type LineStructureMetrics,
+} from './validation/content-heuristics.js';
 export { discoverSkills } from './skills/discovery.js';
 export { buildSkillCatalog } from './skills/catalog.js';
 export { resolveExtractRoute } from './skills/router.js';

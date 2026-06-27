@@ -42,4 +42,20 @@ describe('checkSourceContent', () => {
     expect(result.blocking).toBe(false);
     expect(result.issues).toHaveLength(0);
   });
+
+  it('blocks broken PDF extraction with fragmented lines', () => {
+    const lines: string[] = [];
+    for (let i = 0; i < 120; i += 1) {
+      lines.push('w', 'i', '∈', 'w', '1:N');
+      lines.push(`1.${i % 9}.${i % 3}  n-grams. . . . . . . . . . . . . . . . . . ${i}`);
+    }
+    lines.push(
+      '语料库',
+      '如同长颈鹿脖子由短变长的进化历程一样，语言模型也在不断进化。',
+    );
+    const result = checkSourceContent(lines.join('\n'));
+    expect(result.blocking).toBe(true);
+    expect(result.needsManualReview).toBe(true);
+    expect(result.issues.some((i) => i.includes('broken PDF'))).toBe(true);
+  });
 });

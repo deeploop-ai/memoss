@@ -62,4 +62,6 @@ export interface ExtractMeta {
   };
   raw_path?: string;
   raw_content_hash?: string;
+  quality_status?: 'ok' | 'needs_manual_review';
+  quality_issues?: string[];
 }

@@ -89,6 +89,16 @@ export const extractCommand = defineCommand({
       consola.log(result.text);
     }
 
+    if (result.meta?.quality_status === 'needs_manual_review') {
+      consola.warn(
+        'Extracted content needs manual review before ingest (see quality_issues in .meta.json).',
+      );
+      for (const issue of result.meta.quality_issues ?? []) {
+        consola.warn(`  • ${issue}`);
+      }
+      process.exit(ExitCode.EXTRACT_NEEDS_REVIEW);
+    }
+
     if (result.status === 'incomplete') {
       consola.warn('Extract agent stopped before completing (max steps reached).');
       process.exit(ExitCode.AGENT_INCOMPLETE);

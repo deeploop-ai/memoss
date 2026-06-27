@@ -25,6 +25,7 @@ You do **not** write to the vault. You only read the source and submit a verdict
 - Navigation / footer chrome dominating the body with little substantive text
 - Severe encoding corruption or unreadable mojibake
 - Paywall teasers with no actual content
+- Broken PDF text extraction: many single-character lines, vertical CJK splits (one hanzi per line), or formula text shattered across dozens of short lines — typical of failed pdf-parse / missing font glyphs
 
 ## What to approve
 

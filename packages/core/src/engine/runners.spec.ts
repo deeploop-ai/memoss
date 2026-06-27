@@ -190,6 +190,29 @@ describe('runValidate', () => {
     expect(mockedGenerateText).not.toHaveBeenCalled();
   });
 
+  it('rejects broken PDF extraction via heuristics without calling the model', async () => {
+    const vaultRoot = createVault();
+    const badPath = join(vaultRoot, 'broken-pdf.md');
+    const lines: string[] = [];
+    for (let i = 0; i < 120; i += 1) {
+      lines.push('w', 'i', '∈', 'w', '1:N');
+      lines.push(`1.${i % 9}.${i % 3}  n-grams. . . . . . . . . . . . . . . . . . ${i}`);
+    }
+    writeFileSync(badPath, lines.join('\n'));
+
+    const result = await runValidate({
+      vaultRoot,
+      source: badPath,
+      kind: 'file',
+      extracted: true,
+    });
+
+    expect(result.approved).toBe(false);
+    expect(result.method).toBe('heuristic');
+    expect(result.issues.some((i) => i.includes('broken PDF'))).toBe(true);
+    expect(mockedGenerateText).not.toHaveBeenCalled();
+  });
+
   it('uses the validation agent when heuristics pass', async () => {
     mockedGenerateText.mockImplementation(async (opts) => {
       const step = {

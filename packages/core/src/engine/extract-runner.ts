@@ -27,6 +27,7 @@ import { contentHash, sourceToSlug } from '../skills/slug.js';
 import { tryHashLocalSource } from '../skills/source-identity.js';
 import type { ExtractMeta } from '../skills/types.js';
 import { discoverCrawlPages, isCrawlOutputDir } from '../skills/crawl-meta.js';
+import { checkSourceContent } from '../validation/content-heuristics.js';
 import { createExtractToolRegistry } from '../tools/extract-tools.js';
 import type { ExtractToolContext } from '../tools/extract-context.js';
 import { buildSystemPrompt, createPromptContext } from './context.js';
@@ -211,6 +212,7 @@ function buildMetaFromOutput(input: {
   crawlBudget?: ExtractMeta['crawl_budget'];
 }): ExtractMeta {
   const text = readFileSync(input.markdownPath, 'utf8');
+  const quality = checkSourceContent(text);
   return {
     source_uri: input.source,
     extract_kind: input.pages?.length ? 'web-crawl' : input.extractKind,
@@ -223,7 +225,28 @@ function buildMetaFromOutput(input: {
     cached: input.cached,
     pages: input.pages,
     crawl_budget: input.crawlBudget,
+    quality_status: quality.needsManualReview
+      ? 'needs_manual_review'
+      : quality.blocking
+        ? 'needs_manual_review'
+        : 'ok',
+    quality_issues: quality.issues.length > 0 ? quality.issues : undefined,
   };
+}
+
+function emitExtractQualityWarnings(
+  meta: ExtractMeta,
+  onWarning?: (message: string) => void,
+): void {
+  if (meta.quality_status !== 'needs_manual_review') {
+    return;
+  }
+  for (const issue of meta.quality_issues ?? []) {
+    onWarning?.(`Extract quality: ${issue}`);
+  }
+  onWarning?.(
+    'Extraction finished but content needs manual review before ingest.',
+  );
 }
 
 export async function runExtract(
@@ -329,6 +352,7 @@ export async function runExtract(
       noCache: opts.noCache,
       sourceContentHash,
     });
+    emitExtractQualityWarnings(meta, opts.onWarning);
   };
 
   if (
