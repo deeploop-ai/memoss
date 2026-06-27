@@ -32,6 +32,8 @@ export const extractionConfigSchema = z.object({
   bash_timeout_ms: z.number().int().positive().default(120_000),
   trust_project_skills: z.boolean().default(false),
   fast_path: z.boolean().default(true),
+  archive_original: z.enum(['auto', 'always', 'never']).default('auto'),
+  raw_dir: z.string().default('sources/raw'),
 });
 
 export type ExtractionConfig = z.infer<typeof extractionConfigSchema>;
@@ -98,6 +100,8 @@ export const vaultConfigSchema = z.object({
     bash_timeout_ms: 120_000,
     trust_project_skills: false,
     fast_path: true,
+    archive_original: 'auto',
+    raw_dir: 'sources/raw',
   }),
 });
 
@@ -201,6 +205,8 @@ export function createDefaultVaultConfig(
       bash_timeout_ms: 120_000,
       trust_project_skills: false,
       fast_path: true,
+      archive_original: 'auto',
+      raw_dir: 'sources/raw',
     },
     ...overrides,
   });

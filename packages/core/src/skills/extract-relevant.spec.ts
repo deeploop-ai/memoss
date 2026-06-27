@@ -7,13 +7,18 @@ import {
 } from './extract-relevant.js';
 import type { SkillRecord } from './types.js';
 
-function skill(name: string, baseDir: string): SkillRecord {
+function skill(
+  name: string,
+  baseDir: string,
+  overrides: Partial<SkillRecord> = {},
+): SkillRecord {
   return {
     name,
     description: 'test',
     location: `${baseDir}/SKILL.md`,
     baseDir,
     scope: 'user-agents',
+    ...overrides,
   };
 }
 
@@ -38,8 +43,21 @@ describe('extract-relevant', () => {
     expect(isExtractRelevantSkill('defuddle', record, config)).toBe(true);
   });
 
-  it('ignores unrelated IDE skills without extract scripts', () => {
-    const record = skill('nx-workspace', '/tmp/nx-workspace');
+  it('treats agent skills with extraction descriptions as extract-relevant without scripts', () => {
+    const record = skill('firecrawl', '/tmp/firecrawl', {
+      description:
+        'Search, scrape, and interact with the web via the Firecrawl CLI.',
+    });
+    expect(isExtractRelevantSkill('firecrawl', record, config)).toBe(true);
+    expect(
+      hasExtractRelevantSkills(new Map([['firecrawl', record]]), config),
+    ).toBe(true);
+  });
+
+  it('ignores unrelated IDE skills without extraction signals', () => {
+    const record = skill('nx-workspace', '/tmp/nx-workspace', {
+      description: 'Explore and understand Nx workspaces.',
+    });
     expect(isExtractRelevantSkill('nx-workspace', record, config)).toBe(false);
     expect(
       hasExtractRelevantSkills(
@@ -49,12 +67,31 @@ describe('extract-relevant', () => {
     ).toBe(false);
   });
 
+  it('treats memoss-scoped skills as extract-relevant', () => {
+    const record = skill('custom', '/tmp/custom', {
+      scope: 'user-memoss',
+      description: 'Generic helper.',
+    });
+    expect(isExtractRelevantSkill('custom', record, config)).toBe(true);
+  });
+
   it('filters catalog to extract-relevant skills only', () => {
     const skills = new Map([
       ['defuddle', skill('defuddle', '/tmp/defuddle')],
-      ['nx-workspace', skill('nx-workspace', '/tmp/nx-workspace')],
+      [
+        'firecrawl',
+        skill('firecrawl', '/tmp/firecrawl', {
+          description: 'Scrape webpages to markdown.',
+        }),
+      ],
+      [
+        'nx-workspace',
+        skill('nx-workspace', '/tmp/nx-workspace', {
+          description: 'Explore and understand Nx workspaces.',
+        }),
+      ],
     ]);
     const filtered = filterExtractRelevantSkills(skills, config);
-    expect([...filtered.keys()]).toEqual(['defuddle']);
+    expect([...filtered.keys()]).toEqual(['defuddle', 'firecrawl']);
   });
 });

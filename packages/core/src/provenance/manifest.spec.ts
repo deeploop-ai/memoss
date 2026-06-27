@@ -31,6 +31,8 @@ describe('source manifest', () => {
         content_hash: 'sha256:abc',
         fallback: false,
         skill: 'defuddle',
+        raw_path: 'sources/raw/example-com-article.html',
+        raw_content_hash: 'sha256:raw',
       },
     });
 
@@ -43,6 +45,10 @@ describe('source manifest', () => {
     expect(manifest.sources).toHaveLength(1);
     expect(manifest.sources[0]?.uri).toBe('https://example.com/article');
     expect(manifest.sources[0]?.extractor).toBe('defuddle');
+    expect(manifest.sources[0]?.raw_path).toBe(
+      'sources/raw/example-com-article.html',
+    );
+    expect(manifest.sources[0]?.raw_content_hash).toBe('sha256:raw');
     expect(manifest.sources[0]?.ingested_at).toBe('2026-06-26T10:05:00.000Z');
 
     const yaml = readFileSync(join(vaultRoot, 'sources', 'manifest.yaml'), 'utf8');

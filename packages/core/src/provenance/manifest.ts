@@ -12,6 +12,8 @@ export interface SourceManifestEntry {
   ingested_at?: string;
   extractor?: string;
   extracted_path?: string;
+  raw_path?: string;
+  raw_content_hash?: string;
   affects?: string[];
 }
 
@@ -87,6 +89,8 @@ export function registerExtractProvenance(
     content_hash: input.meta.content_hash,
     extractor: input.meta.skill,
     extracted_path: relativePath,
+    raw_path: input.meta.raw_path,
+    raw_content_hash: input.meta.raw_content_hash,
   });
 }
 

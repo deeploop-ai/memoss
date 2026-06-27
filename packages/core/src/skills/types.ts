@@ -60,4 +60,6 @@ export interface ExtractMeta {
     max: number;
     used: number;
   };
+  raw_path?: string;
+  raw_content_hash?: string;
 }

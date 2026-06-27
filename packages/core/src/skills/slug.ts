@@ -2,19 +2,23 @@ import { createHash } from 'node:crypto';
 import { basename, extname } from 'node:path';
 
 export function sourceToSlug(source: string): string {
-  try {
-    const url = new URL(source);
-    const host = url.hostname.replace(/^www\./, '');
-    const pathPart = url.pathname
-      .replace(/\/$/, '')
-      .replace(/\//g, '-')
-      .replace(/^-/, '');
-    const raw = pathPart ? `${host}-${pathPart}` : host;
-    return sanitizeSlug(raw);
-  } catch {
-    const name = basename(source, extname(source));
-    return sanitizeSlug(name);
+  if (/^https?:\/\//i.test(source)) {
+    try {
+      const url = new URL(source);
+      const host = url.hostname.replace(/^www\./, '');
+      const pathPart = url.pathname
+        .replace(/\/$/, '')
+        .replace(/\//g, '-')
+        .replace(/^-/, '');
+      const raw = pathPart ? `${host}-${pathPart}` : host;
+      return sanitizeSlug(raw);
+    } catch {
+      return sanitizeSlug('source');
+    }
   }
+
+  const name = basename(source, extname(source));
+  return sanitizeSlug(name);
 }
 
 function sanitizeSlug(value: string): string {

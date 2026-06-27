@@ -6,6 +6,11 @@ import { buildSkillCatalog } from '../skills/catalog.js';
 import { discoverSkills } from '../skills/discovery.js';
 import { registerExtractProvenance } from '../provenance/manifest.js';
 import {
+  maybeArchiveOriginal,
+  mergeArchiveIntoMeta,
+  type SourceArchive,
+} from '../skills/archive-original.js';
+import {
   buildExtractCacheKey,
   readExtractCache,
   writeExtractCache,
@@ -282,6 +287,20 @@ export async function runExtract(
     }
   }
 
+  let sourceArchive: SourceArchive | null = null;
+  try {
+    sourceArchive = await maybeArchiveOriginal({
+      vaultRoot: opts.vaultRoot,
+      source: opts.source,
+      extractKind,
+      config: config.extraction,
+    });
+  } catch (error) {
+    opts.onWarning?.(
+      `Could not archive original source (${error instanceof Error ? error.message : 'unknown'}); continuing extract.`,
+    );
+  }
+
   const persist = (meta: ExtractMeta) => {
     persistExtractOutcome(opts.vaultRoot, config, {
       source: opts.source,
@@ -289,7 +308,7 @@ export async function runExtract(
       markdownPath,
       metaPath,
       relativeMarkdown,
-      meta,
+      meta: mergeArchiveIntoMeta(meta, sourceArchive),
       skills,
       noCache: opts.noCache,
     });
