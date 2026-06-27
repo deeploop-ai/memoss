@@ -385,7 +385,7 @@ confidence: high                  # Agent self-assessment for review prioritizat
 
 ## 6. Core Operations Model
 
-The system supports **seven core operations** plus **Bridge** as a format operation.
+The system supports **seven core operations**, a planned **Read** operation for long-form sources (whole books), plus **Bridge** as a format operation.
 
 ### 6.1 Ingest
 
@@ -412,6 +412,8 @@ User drops source → Agent reads source → (Interactive) Agent discusses takea
 **CLI:** `memoss ingest <source> [--interactive] [--crawl --seeds <urls> --max-pages N]`
 
 **Priority:** Phase 1a (single source); Phase 1b (crawl + interactive + draft branch)
+
+**Related (planned):** Whole books and other long sources use the **Read / Serial Ingest** orchestration layer — Extract → split by chapter → ingest each chapter with shared book-level tuning and resume. See [Serial Read Design (draft)](serial-read-design.md).
 
 ### 6.2 Query
 
@@ -557,7 +559,30 @@ User selects subtree or tag filter → Bridge computes closure over cross-refere
 
 **Priority:** Phase 2a
 
-### 6.8 Bridge
+### 6.8 Read (planned)
+
+> Compile a whole book or long document into the wiki via chapter-at-a-time ingest.
+
+**Source:** Product need for hundreds-of-pages PDFs/EPUBs; builds on Extract + Ingest decoupling ([Extraction Skills Design](extraction-skills-design.md)).
+
+**Flow:**
+```
+User provides book source → Extract (optional skill) → splitChapters (deterministic)
+→ runBookTuning (once) → runIngest per chapter (augment, shared draft branch)
+→ synthesis page + index refresh → User reviews diff → approve merges to main
+```
+
+**Key behavior:**
+- **Orchestration, not a mega-agent** — `runSerialIngest` schedules existing runners; each chapter still targets 5–15 cross-linked page updates
+- **Work manifest** (`sources/works/<id>.yaml`) — chapter list, emphasis template, progress, resume
+- **Augment across chapters** — distinct from `memoss rebuild` (rewrite semantics)
+- **Book-level tuning once** — per-chapter tuning preview (~8k chars) is insufficient for full books
+
+**CLI (planned):** `memoss read <source> --work <id> [--phase auto|extract|ingest] [--resume]`
+
+**Priority:** Phase 2a (after extract skills + provenance land). Design: [Serial Read Design (draft)](serial-read-design.md).
+
+### 6.9 Bridge
 
 > Convert between OKF Vault and MaC Catalog Snapshot.
 
@@ -697,6 +722,8 @@ memoss/
 ├── docs/
 │   ├── product-design.md
 │   ├── phase-1-plan.md
+│   ├── extraction-skills-design.md
+│   ├── serial-read-design.md     # Long-form / whole-book ingest (draft)
 │   ├── okf-spec.md               # Canonical OKF reference
 │   └── mac-bridge.md             # MaC interop spec (Phase 2)
 │
@@ -804,18 +831,19 @@ interface CatalogBridge {
 
 ### Phase 2a (Months 6–12): Catalog Bridge & Enrich
 
-**Goal:** Enterprise data catalog workflow; team-ready git review.
+**Goal:** Enterprise data catalog workflow; team-ready git review; long-form source compiles.
 
 | Item | Description |
 |------|-------------|
 | `@memoss/catalog-bridge` | MaC pull/push/status/validate; OKF ↔ MaC conversion |
 | **Enrich operation** | Single-target enrichment with MCP tool sources |
 | **Publish operation** | Bundle closure + viz.html |
+| **`memoss read` (Serial Read)** | Work manifest + chapter-at-a-time ingest with resume — [design draft](serial-read-design.md) |
 | **`schema-packs/data-catalog`** | BigQuery table/metric conventions |
 | **Connectors** | BigQuery schema, dbt, Notion, Confluence |
 | **PR review workflow** | GitHub/GitLab integration for agent PRs |
 
-**Validation scenario:** knowledge-catalog ecommerce BQ demo end-to-end.
+**Validation scenario:** knowledge-catalog ecommerce BQ demo end-to-end; compile a technical book PDF into a cross-linked research vault.
 
 ### Phase 2b (Months 12–18): Discover, Desktop, Search
 

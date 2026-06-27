@@ -520,3 +520,9 @@ CI 不依赖外部 API（jina/firecrawl）；用 vault 内 **test skill** 目录
 | 路由策略 | **C 混合** | 可预测（config/CLI）+ 灵活（auto_select） |
 | 提取产物 | `sources/extracted/*.md` | 不可变来源层，可审计、可复跑 Ingest |
 | Fallback | 内置 fetch/pdf-parse | 零 skill 时仍可工作 |
+
+---
+
+## 19. 相关设计
+
+- [Serial Read Design (draft)](serial-read-design.md) — 整本书 / 长文：Extract 产出经 `splitChapters` 后由 `runSerialIngest` 逐章调用 Ingest；依赖本设计的提取中间层。

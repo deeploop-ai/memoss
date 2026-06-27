@@ -5,7 +5,8 @@
 **Goal:** Open-source CLI that developers adopt for personal and project knowledge management. Validate the core agent loop with trust primitives.
 
 > See [Product Design v0.2](product-design.md) for full architecture context.  
-> See [Phase 1 Technical Design](phase-1-technical-design.md) for locked stack choices, module APIs, and build/CI details.
+> See [Phase 1 Technical Design](phase-1-technical-design.md) for locked stack choices, module APIs, and build/CI details.  
+> See [Serial Read Design (draft)](serial-read-design.md) for planned whole-book / long-form ingest orchestration.
 
 ---
 
@@ -571,12 +572,16 @@ M1–M3 can partially overlap. M4 depends on M1–M3. M5–M7 depend on M4. M8�
 | Desktop / Web UI | 2b |
 | BigQuery, Snowflake, dbt connectors | 2a |
 | Query `--format marp` | 2b |
+| `memoss read` / Serial Read (`runSerialIngest`) | 2a |
+| [Serial Read Design](serial-read-design.md) | 2a (draft) |
 
 ---
 
 ## 7. Key References
 
 - [Product Design v0.2](product-design.md)
+- [Extraction Skills Design (draft)](extraction-skills-design.md)
+- [Serial Read Design (draft)](serial-read-design.md)
 - [OKF Spec v0.1](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
 - [knowledge-catalog reference agent](https://github.com/GoogleCloudPlatform/knowledge-catalog/tree/main/okf/src/reference_agent)
 - [knowledge-catalog web ingestion prompt](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/src/reference_agent/prompts/web_ingestion_instruction.md)

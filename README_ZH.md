@@ -201,7 +201,7 @@ Memoss 将两套独立设计收敛为可产品化的运行时：
 | **Phase 2b** | 12–18 个月 | Discover、桌面应用、混合检索、团队 PR 工作流 |
 | **Phase 3** | 18+ 个月 | 托管平台、Bundle 市场、企业版 |
 
-详细文档：[产品设计 v0.2](docs/product-design.md) · [Phase 1 计划](docs/phase-1-plan.md) · [Phase 1 技术设计](docs/phase-1-technical-design.md) · [CLI 参考](docs/cli-reference.md) · [OKF 规范](docs/okf-spec.md)
+详细文档：[产品设计 v0.2](docs/product-design.md) · [Phase 1 计划](docs/phase-1-plan.md) · [Phase 1 技术设计](docs/phase-1-technical-design.md) · [Extraction Skills 设计](docs/extraction-skills-design.md) · [Serial Read 设计](docs/serial-read-design.md) · [CLI 参考](docs/cli-reference.md) · [OKF 规范](docs/okf-spec.md)
 
 ---
 

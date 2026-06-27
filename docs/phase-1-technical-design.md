@@ -104,6 +104,8 @@ memoss/
 │   ├── product-design.md
 │   ├── phase-1-plan.md
 │   ├── phase-1-technical-design.md  ← 本文档
+│   ├── extraction-skills-design.md
+│   ├── serial-read-design.md        # 长文/整本书 ingest 编排（草案）
 │   └── okf-spec.md                  M7
 └── .github/workflows/ci.yml
 ```
