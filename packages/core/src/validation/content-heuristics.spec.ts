@@ -30,4 +30,16 @@ describe('checkSourceContent', () => {
     const result = checkSourceContent('# Hi\n');
     expect(result.blocking).toBe(true);
   });
+
+  it('allows content with embedded null bytes after normalization', () => {
+    const md = [
+      '# LLM Overview',
+      '',
+      'Large language models are neural networks trained on vast text corpora.',
+      'They support reasoning, coding, and multilingual tasks at scale.',
+    ].join('\0\n');
+    const result = checkSourceContent(md);
+    expect(result.blocking).toBe(false);
+    expect(result.issues).toHaveLength(0);
+  });
 });

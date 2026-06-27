@@ -1,3 +1,5 @@
+import { stripNullBytes } from '../text/strip-null-bytes.js';
+
 export interface ContentHeuristicResult {
   /** When true, reject immediately without calling the validation agent. */
   blocking: boolean;
@@ -20,8 +22,9 @@ function meaningfulText(text: string): string {
 /** Fast checks for obviously unsuitable source material before ingest. */
 export function checkSourceContent(text: string): ContentHeuristicResult {
   const issues: string[] = [];
-  const trimmed = text.trimStart();
-  const plain = meaningfulText(text);
+  const normalized = stripNullBytes(text);
+  const trimmed = normalized.trimStart();
+  const plain = meaningfulText(normalized);
 
   if (/^<!doctype\s+html/i.test(trimmed) || /^<html[\s>]/i.test(trimmed)) {
     issues.push(
@@ -30,17 +33,13 @@ export function checkSourceContent(text: string): ContentHeuristicResult {
   }
 
   if (
-    /<head[\s>]/i.test(text) &&
-    /<script[\s>]/i.test(text) &&
-    countHtmlOpenTags(text) >= 20
+    /<head[\s>]/i.test(normalized) &&
+    /<script[\s>]/i.test(normalized) &&
+    countHtmlOpenTags(normalized) >= 20
   ) {
     issues.push(
       'Content contains heavy HTML scaffolding (<head>, <script>) typical of a fetched web page shell, not knowledge content.',
     );
-  }
-
-  if (text.includes('\0')) {
-    issues.push('Content contains binary null bytes — likely corrupt or wrong encoding.');
   }
 
   if (plain.length < 80) {
@@ -49,7 +48,7 @@ export function checkSourceContent(text: string): ContentHeuristicResult {
     );
   }
 
-  if (/\uFFFD/.test(text)) {
+  if (/\uFFFD/.test(normalized)) {
     issues.push('Content contains replacement characters (U+FFFD), suggesting encoding corruption.');
   }
 

@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, extname, join, resolve } from 'node:path';
 import { MemossError } from '../errors.js';
+import { stripNullBytes } from '../text/strip-null-bytes.js';
 import type { SourceAdapter, SourceContent, SourceItem } from './types.js';
 
 const SUPPORTED_EXTENSIONS = new Set(['.md', '.txt', '.pdf']);
@@ -9,7 +10,7 @@ async function readPdfText(filePath: string): Promise<string> {
   const pdfParse = (await import('pdf-parse')).default;
   const buffer = readFileSync(filePath);
   const result = await pdfParse(buffer);
-  return result.text ?? '';
+  return stripNullBytes(result.text ?? '');
 }
 
 function collectFiles(targetPath: string): string[] {
@@ -101,6 +102,8 @@ export class FileSourceAdapter implements SourceAdapter {
     } else {
       text = readFileSync(filePath, 'utf8');
     }
+
+    text = stripNullBytes(text);
 
     return {
       id,

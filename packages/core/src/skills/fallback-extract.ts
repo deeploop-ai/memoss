@@ -2,6 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { fetchUrl } from '../adapters/fetch.js';
 import { MemossError } from '../errors.js';
+import { stripNullBytes } from '../text/strip-null-bytes.js';
 import { contentHash } from './slug.js';
 import type { ExtractKind, ExtractMeta } from './types.js';
 
@@ -9,7 +10,7 @@ async function readPdfText(filePath: string): Promise<string> {
   const pdfParse = (await import('pdf-parse')).default;
   const buffer = readFileSync(filePath);
   const result = await pdfParse(buffer);
-  return result.text ?? '';
+  return stripNullBytes(result.text ?? '');
 }
 
 export interface FallbackExtractInput {
