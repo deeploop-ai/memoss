@@ -88,6 +88,7 @@ function createIngestRunOptions(
     skill: args.skill,
     extract: args.noExtract === true ? false : (args.extract ?? 'auto'),
     noCache: args.noCache,
+    skipValidate: args.skipValidate,
   };
 }
 

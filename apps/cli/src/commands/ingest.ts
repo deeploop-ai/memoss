@@ -49,6 +49,11 @@ export const ingestCommand = defineCommand({
       description: 'Bypass extract cache',
       default: false,
     },
+    skipValidate: {
+      type: 'boolean',
+      description: 'Skip pre-ingest content validation',
+      default: false,
+    },
     vault: {
       type: 'string',
       alias: 'C',
@@ -68,6 +73,7 @@ export const ingestCommand = defineCommand({
       skill: args.skill,
       extract: args.noExtract ? false : 'auto',
       noCache: args.noCache,
+      skipValidate: args.skipValidate,
       noDraft: args.noDraft,
       model: resolveModelArgs(args),
       onStepFinish: (step) => {
@@ -92,6 +98,20 @@ export const ingestCommand = defineCommand({
       consola.box('Diff summary');
       consola.log(result.diff);
       consola.info('Review changes, then run `memoss approve` or `memoss reject`.');
+    }
+
+    if (result.status === 'rejected') {
+      consola.error('Ingest aborted: source content failed pre-ingest validation.');
+      if (result.validation?.summary) {
+        consola.warn(result.validation.summary);
+      }
+      for (const issue of result.validation?.issues ?? []) {
+        consola.warn(`  • ${issue}`);
+      }
+      if (result.text) {
+        consola.log(result.text);
+      }
+      process.exit(ExitCode.INGEST_REJECTED);
     }
 
     if (result.status === 'incomplete') {

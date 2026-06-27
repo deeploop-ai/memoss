@@ -10,6 +10,7 @@ export { runIngest } from './ingest-runner.js';
 export { runExtract, resolveIngestSource } from './extract-runner.js';
 export { runQuery } from './query-runner.js';
 export { runLint } from './lint-runner.js';
+export { runValidate } from './validate-runner.js';
 export { runAgentLoop } from './orchestrator.js';
 export { resolveModel, parseModelOverride } from './model-registry.js';
 export {
@@ -35,4 +36,6 @@ export type {
   QueryRunResult,
   LintRunOptions,
   LintRunResult,
+  ValidateRunOptions,
+  ValidateRunResult,
 } from './types.js';
