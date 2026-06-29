@@ -1,5 +1,12 @@
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, isAbsolute, relative, resolve } from 'node:path';
 import { z } from 'zod';
 import { tool, type Tool } from 'ai';
@@ -34,6 +41,17 @@ const writeFileSchema = z.object({
       'Final markdown output path (.md only, under sources/extracted/)',
     ),
   content: z.string().describe('Markdown file content'),
+});
+
+const copyFileSchema = z.object({
+  source: z
+    .string()
+    .describe('Source file path (absolute or skill-relative)'),
+  destination: z
+    .string()
+    .describe(
+      'Destination markdown path (.md only, under sources/extracted/)',
+    ),
 });
 
 const MAX_BASH_OUTPUT = 32 * 1024;
@@ -248,12 +266,39 @@ export function createExtractWriteFileTool(ctx: ExtractToolContext): Tool {
   });
 }
 
+export function createExtractCopyFileTool(ctx: ExtractToolContext): Tool {
+  return tool({
+    description:
+      'Copy a markdown file from the skill directory into sources/extracted/. Prefer this after CLI tools (e.g. firecrawl) write output under the skill baseDir.',
+    inputSchema: copyFileSchema,
+    execute: async ({ source, destination }) => {
+      const sourcePath = resolveReadablePath(ctx, source);
+      const destPath = resolveWritablePath(ctx, destination);
+      mkdirSync(dirname(destPath), { recursive: true });
+      copyFileSync(sourcePath, destPath);
+      const relativePath = relative(resolve(ctx.vaultRoot), destPath).replace(
+        /\\/g,
+        '/',
+      );
+      ctx.writtenMarkdownPaths ??= [];
+      ctx.writtenMarkdownPaths.push(relativePath);
+      return {
+        source: sourcePath,
+        destination: destPath,
+        relativePath,
+        bytes: statSync(destPath).size,
+      };
+    },
+  });
+}
+
 export function createExtractToolRegistry(ctx: ExtractToolContext) {
   return {
     activate_skill: createActivateSkillTool(ctx),
     bash: createBashTool(ctx),
     read_file: createExtractReadFileTool(ctx),
     write_file: createExtractWriteFileTool(ctx),
+    copy_file: createExtractCopyFileTool(ctx),
   };
 }
 

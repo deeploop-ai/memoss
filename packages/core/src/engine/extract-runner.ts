@@ -32,6 +32,7 @@ import { cleanupExtractArtifacts } from '../extraction/cleanup-artifacts.js';
 import {
   normalizeExtractOutputPath,
   resolveExtractMarkdownOutput,
+  resolveSkillLocalExtractOutput,
 } from '../extraction/resolve-output.js';
 import { createExtractToolRegistry } from '../tools/extract-tools.js';
 import type { ExtractToolContext } from '../tools/extract-context.js';
@@ -79,7 +80,10 @@ function buildExtractPrompt(opts: {
 
   lines.push('', 'Write the final markdown to the output path before finishing.');
   lines.push(
-    'Use `write_file` for the final markdown at the exact output path — do not write scripts or temp files under sources/extracted/.',
+    'Use `write_file` or `copy_file` for the final markdown at the exact output path.',
+  );
+  lines.push(
+    'After CLI tools write under the skill directory (e.g. `.firecrawl/page.md`), call `copy_file` — do not use bash cp/copy/type into sources/extracted/ (bash cwd is the skill dir, not the vault).',
   );
   return lines.join('\n');
 }
@@ -594,6 +598,19 @@ export async function runExtract(
       normalizeExtractOutputPath(markdownPath, discovered);
       opts.onWarning?.(
         `Extract agent wrote markdown outside the canonical output path; normalized to ${relativeMarkdown}.`,
+      );
+    }
+  }
+
+  if (!existsSync(markdownPath)) {
+    const skillLocal = resolveSkillLocalExtractOutput(
+      extractCtx.activeSkillBaseDir,
+      markdownPath,
+    );
+    if (skillLocal) {
+      normalizeExtractOutputPath(markdownPath, skillLocal);
+      opts.onWarning?.(
+        `Extract agent wrote markdown under the skill directory; normalized to ${relativeMarkdown}.`,
       );
     }
   }

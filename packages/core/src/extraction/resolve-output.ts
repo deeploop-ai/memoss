@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, renameSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, renameSync, unlinkSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import fg from 'fast-glob';
 
@@ -54,6 +54,46 @@ export function resolveExtractMarkdownOutput(
   return undefined;
 }
 
+/**
+ * Recover markdown the agent wrote under the active skill directory instead of
+ * the vault (common when bash cwd is the skill baseDir).
+ */
+export function resolveSkillLocalExtractOutput(
+  skillBaseDir: string | undefined,
+  expectedMarkdownPath: string,
+): string | undefined {
+  if (!skillBaseDir) {
+    return undefined;
+  }
+
+  const expectedName = basename(expectedMarkdownPath);
+  const skillRoot = resolve(skillBaseDir);
+
+  const misplacedVaultRelative = join(
+    skillRoot,
+    'sources',
+    'extracted',
+    expectedName,
+  );
+  if (existsSync(misplacedVaultRelative)) {
+    return resolve(misplacedVaultRelative);
+  }
+
+  const firecrawlDir = join(skillRoot, '.firecrawl');
+  if (existsSync(firecrawlDir)) {
+    const matches = fg.sync('**/*.md', {
+      cwd: firecrawlDir,
+      onlyFiles: true,
+      absolute: true,
+    });
+    if (matches.length === 1) {
+      return resolve(matches[0]!);
+    }
+  }
+
+  return undefined;
+}
+
 export function normalizeExtractOutputPath(
   expectedMarkdownPath: string,
   discoveredPath: string,
@@ -63,6 +103,15 @@ export function normalizeExtractOutputPath(
   }
 
   mkdirSync(dirname(expectedMarkdownPath), { recursive: true });
-  renameSync(discoveredPath, expectedMarkdownPath);
+  try {
+    renameSync(discoveredPath, expectedMarkdownPath);
+  } catch {
+    copyFileSync(discoveredPath, expectedMarkdownPath);
+    try {
+      unlinkSync(discoveredPath);
+    } catch {
+      // Best-effort cleanup of the discovered copy.
+    }
+  }
   return expectedMarkdownPath;
 }

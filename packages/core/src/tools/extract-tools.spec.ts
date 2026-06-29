@@ -1,11 +1,14 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, describe, expect, it } from 'vitest';
 import { MemossError } from '../errors.js';
 import { createDefaultVaultConfig } from '../config/vault-config.js';
 import type { ExtractToolContext } from './extract-context.js';
-import { createExtractWriteFileTool } from './extract-tools.js';
+import {
+  createExtractCopyFileTool,
+  createExtractWriteFileTool,
+} from './extract-tools.js';
 
 const tempDirs: string[] = [];
 
@@ -83,5 +86,29 @@ describe('createExtractWriteFileTool', () => {
     expect(ctx.writtenMarkdownPaths).toEqual([
       'sources/extracted/example-com-article.md',
     ]);
+  });
+});
+
+describe('createExtractCopyFileTool', () => {
+  it('copies from skill directory into sources/extracted', async () => {
+    const ctx = createExtractContext();
+    const skillDir = mkdtempSync(join(tmpdir(), 'memoss-skill-'));
+    tempDirs.push(skillDir);
+    const scraped = join(skillDir, '.firecrawl', 'page.md');
+    mkdirSync(join(skillDir, '.firecrawl'), { recursive: true });
+    writeFileSync(scraped, '# Scraped page');
+    ctx.activeSkillBaseDir = skillDir;
+
+    const copyFile = createExtractCopyFileTool(ctx);
+    const relativePath = `${ctx.outputDir}/example-com-article.md`;
+    const result = await copyFile.execute!(
+      { source: '.firecrawl/page.md', destination: relativePath },
+      { toolCallId: 'test', messages: [] },
+    );
+
+    const expected = resolve(ctx.vaultRoot, relativePath);
+    expect(result.destination).toBe(expected);
+    expect(readFileSync(expected, 'utf8')).toBe('# Scraped page');
+    expect(ctx.writtenMarkdownPaths).toEqual([relativePath.replace(/\\/g, '/')]);
   });
 });
