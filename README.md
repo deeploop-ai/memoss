@@ -120,6 +120,57 @@ memoss mcp serve
 
 Vault discovery order: `--vault` / `-C` → `MEMOSS_VAULT_PATH` → walk up from cwd → `~/.memoss-vault`.
 
+### Ingest guards and policies
+
+`memoss ingest` runs a pipeline before and during writing pages:
+
+```
+Extract (optional) → Validate (on by default) → Tuning (on by default) → Ingest Agent → draft branch for review
+```
+
+#### Hard blocks (ingest aborts, vault unchanged)
+
+**Validate** runs unless you pass `--skip-validate`. It has two layers:
+
+1. **Heuristic checks** (deterministic) — any match rejects immediately:
+   - Raw HTML page shells instead of article text
+   - Heavy `<head>` / `<script>` scaffolding
+   - Fewer than ~80 characters of meaningful text
+   - Replacement characters (`U+FFFD`) suggesting encoding corruption
+   - Content resembling HTTP 404/403 error pages
+   - Broken PDF text extraction (fragmented short lines, vertical CJK splits, etc.)
+
+2. **Validate Agent** — LLM review of the same material. Also rejects login walls, CAPTCHA pages, paywall teasers, empty stubs, and nav/footer chrome with little body text. If the agent does not submit a verdict, ingest is aborted as a precaution.
+
+**Extract failures** can also stop ingest before validate — e.g. `audio` / `video` / unknown formats with no installed extraction skill and no built-in fallback.
+
+> `memoss extract` exits when extracted content is flagged `needs_manual_review` (e.g. broken PDF). **`memoss ingest` only warns** and continues.
+
+#### Soft limits (ingest proceeds, content may be trimmed)
+
+| Stage | Blocks ingest? | What it does |
+|-------|----------------|--------------|
+| **Tuning** | No | Plans which pages to create/update; `skip_patterns` apply to low-signal **sections** inside a source (footer nav, changelog indexes), not the whole source. Override with `--emphasis`. |
+| **Ingest Agent** | No | Skips low-value **sections** (marketing fluff, nav chrome). Won't skip an entire user-submitted source. New topics get new `topics/` pages even when the vault theme differs. May omit spec-level detail (raw BNF, legacy appendices) in favor of concept pages — check the agent summary **Skipped** line. |
+| **Write policies** | On `write_page` | Defaults in `.memoss/config.yaml` → `policies`: must `read_page` before updating; preserve existing `#` headings and `resource` frontmatter (`error`); warn on large body shrink, missing `# Citations`, or meta-page reference slugs. |
+
+#### After ingest
+
+When `git.draft_branch` is enabled (default), changes land on a draft branch — review with `memoss approve` or `memoss reject`. If ingest completes but no pages were created or updated, retry with `--emphasis` or `--skip-tuning`.
+
+#### Useful flags
+
+```bash
+memoss ingest <source> \
+  --skip-validate    # bypass validate gate (use with care)
+  --skip-tuning      # skip tuning planning pass
+  --no-extract       # ingest source as-is (no extract step)
+  --emphasis "..."   # steer what to keep or prioritize
+  --no-draft         # write directly to the current branch
+```
+
+Configure extraction skills and trust in `.memoss/config.yaml` under `extraction.*`. See [Extraction Skills Design](docs/extraction-skills-design.md).
+
 ### MCP in Cherry Studio
 
 Use **STDIO** transport. Put the executable in **Command** and subcommands in **Arguments**:

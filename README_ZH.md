@@ -120,6 +120,57 @@ memoss mcp serve
 
 知识库发现顺序：`--vault` / `-C` → `MEMOSS_VAULT_PATH` → 从当前目录向上查找 → `~/.memoss-vault`。
 
+### 入库限制与策略
+
+`memoss ingest` 在写入页面前后会经过以下流水线：
+
+```
+Extract（可选）→ Validate（默认开启）→ Tuning（默认开启）→ Ingest Agent → draft 分支待审
+```
+
+#### 硬拦截（中止入库，vault 不会被修改）
+
+**Validate** 默认开启，可用 `--skip-validate` 跳过，包含两层：
+
+1. **启发式检查**（确定性，任一命中即拒绝）：
+   - 原始 HTML 页面壳，而非正文
+   - 大量 `<head>` / `<script>` 脚手架
+   - 有效文本不足约 80 字符
+   - 含替换字符 `U+FFFD`（编码损坏）
+   - 内容像 HTTP 404/403 错误页
+   - PDF 文本提取破碎（大量短行、竖排单字 CJK 等）
+
+2. **Validate Agent**（LLM 复审）— 还会拒绝登录墙、验证码页、付费墙摘要、空占位页、导航/页脚占主导且正文极少等情况。若 Agent 未提交判定，出于谨慎也会中止入库。
+
+**Extract 失败** 也可能在 validate 之前中止入库，例如 `audio` / `video` / 未知格式且无可用提取 skill、也无内置 fallback。
+
+> `memoss extract` 在内容被标为 `needs_manual_review`（如破碎 PDF）时会**退出**；**`memoss ingest` 仅警告并继续**。
+
+#### 软限制（允许入库，但可能取舍内容）
+
+| 阶段 | 会阻止入库？ | 作用 |
+|------|-------------|------|
+| **Tuning** | 否 | 规划要创建/更新的页面；`skip_patterns` 只针对源内**低信号段落**（页脚导航、changelog 索引等），不能拒绝整份用户提交的源。可用 `--emphasis` 覆盖。 |
+| **Ingest Agent** | 否 | 跳过源内低价值**段落**（营销废话、导航栏等），不会跳过整份源；主题与 vault 不符时会新建 `topics/` 页。可能省略规范级细节（原始 BNF、历史附录）以换取概念页 — 见 Agent 摘要中的 **Skipped** 说明。 |
+| **写入策略** | 在 `write_page` 时 | 默认见 `.memoss/config.yaml` → `policies`：更新前须 `read_page`；保留已有 `#` 标题与 `resource` frontmatter（违反则 `error`）；正文大幅缩短、缺少 `# Citations`、元页面式 reference slug 等会 `warn`。 |
+
+#### 入库之后
+
+`git.draft_branch` 默认开启时，改动在 draft 分支上 — 用 `memoss approve` 或 `memoss reject` 审核。若 ingest 完成但未创建/更新任何页面，可用 `--emphasis` 或 `--skip-tuning` 重试。
+
+#### 常用开关
+
+```bash
+memoss ingest <source> \
+  --skip-validate    # 跳过 validate 门禁（慎用）
+  --skip-tuning      # 跳过 tuning 规划
+  --no-extract       # 不 extract，直接入库原文件
+  --emphasis "..."   # 强调要保留或优先整理的内容
+  --no-draft         # 直接写入当前分支
+```
+
+提取 skill 与信任配置见 `.memoss/config.yaml` 的 `extraction.*`。详见 [Extraction Skills 设计](docs/extraction-skills-design.md)。
+
 ### 在 Cherry Studio 中使用 MCP
 
 使用 **STDIO** 传输。将可执行文件填入 **Command**，子命令填入 **Arguments**：
