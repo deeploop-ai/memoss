@@ -9,7 +9,7 @@ import {
   vaultExists,
 } from './runner-setup.js';
 import { summarizeAgentStep } from './step-summary.js';
-import type { RunnerBaseOptions } from './types.js';
+import type { AgentStatus, RunnerBaseOptions } from './types.js';
 import {
   createTuningToolRegistry,
   formatTuningOverlay,
@@ -29,7 +29,7 @@ export interface TuningRunOptions extends RunnerBaseOptions {
 export interface TuningRunResult {
   report: TuningReport;
   overlay: string;
-  status: 'complete' | 'incomplete';
+  status: AgentStatus;
   text: string;
 }
 

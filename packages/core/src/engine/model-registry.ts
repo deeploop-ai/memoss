@@ -51,7 +51,7 @@ export function parseModelOverride(
   const slash = value.indexOf('/');
   if (slash <= 0 || slash === value.length - 1) {
     throw new MemossError(
-      'VAULT_NOT_FOUND',
+      'INVALID_ARGUMENT',
       `Invalid model override "${value}". Expected format: provider/model`,
     );
   }
@@ -59,7 +59,7 @@ export function parseModelOverride(
   const provider = value.slice(0, slash);
   if (provider !== 'anthropic' && provider !== 'openai') {
     throw new MemossError(
-      'VAULT_NOT_FOUND',
+      'INVALID_ARGUMENT',
       `Unsupported provider "${provider}". Use anthropic or openai.`,
     );
   }

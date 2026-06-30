@@ -15,14 +15,23 @@ export interface SearchResult {
   snippets: SearchSnippet[];
 }
 
+export interface SearchKbOptions {
+  maxResults?: number;
+}
+
+const DEFAULT_MAX_RESULTS = 50;
+
 export async function searchKb(
   store: KnowledgeStore,
   query: string,
+  options: SearchKbOptions = {},
 ): Promise<SearchResult[]> {
   const normalizedQuery = query.trim().toLowerCase();
   if (!normalizedQuery) {
     return [];
   }
+
+  const maxResults = options.maxResults ?? DEFAULT_MAX_RESULTS;
 
   const files = await fg('**/*.md', {
     cwd: store.vaultRoot,
@@ -33,6 +42,8 @@ export async function searchKb(
   const results: SearchResult[] = [];
 
   for (const relativePath of files) {
+    if (results.length >= maxResults) break;
+
     const path = relativePath.replace(/\\/g, '/');
     if (isReservedFilename(path)) {
       continue;

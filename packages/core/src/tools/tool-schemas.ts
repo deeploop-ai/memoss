@@ -32,6 +32,7 @@ export const appendLogSchema = z.object({
 
 export const searchKbSchema = z.object({
   query: z.string().describe('Grep-style search query'),
+  maxResults: z.number().int().positive().optional().describe('Maximum results to return (default 50)'),
 });
 
 export const fetchUrlSchema = z.object({

@@ -1,6 +1,7 @@
 export type ErrorCode =
   | 'OKF_DOCUMENT_ERROR'
   | 'OKF_VALIDATION_ERROR'
+  | 'INVALID_ARGUMENT'
   | 'MISSING_API_KEY'
   | 'VAULT_NOT_FOUND'
   | 'POLICY_VIOLATION'
@@ -8,6 +9,7 @@ export type ErrorCode =
   | 'FETCH_ERROR'
   | 'SOURCE_ERROR'
   | 'AGENT_INCOMPLETE'
+  | 'AGENT_ERROR'
   | 'EXTRACT_ERROR'
   | 'SKILL_ERROR';
 

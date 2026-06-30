@@ -3,7 +3,7 @@ import type { ModelSpec } from '../config/vault-config.js';
 import type { SourceKind } from '../adapters/types.js';
 import type { ExtractKind, ExtractMeta, ExtractRoute } from '../skills/types.js';
 
-export type AgentStatus = 'complete' | 'incomplete';
+export type AgentStatus = 'complete' | 'incomplete' | 'error';
 
 export interface AgentStepSummary {
   stepNumber: number;

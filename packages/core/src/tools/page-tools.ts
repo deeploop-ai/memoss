@@ -184,9 +184,9 @@ export function createSearchKbTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Search the knowledge base using grep-style matching.',
     inputSchema: searchKbSchema,
-    execute: async ({ query }) => ({
+    execute: async ({ query, maxResults }) => ({
       results: await import('./search-kb.js').then((mod) =>
-        mod.searchKb(ctx.store, query),
+        mod.searchKb(ctx.store, query, { maxResults }),
       ),
     }),
   });

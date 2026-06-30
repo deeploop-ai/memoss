@@ -7,7 +7,7 @@ import {
   vaultExists,
 } from '../engine/runner-setup.js';
 import { summarizeAgentStep } from '../engine/step-summary.js';
-import type { RunnerBaseOptions } from '../engine/types.js';
+import type { AgentStatus, RunnerBaseOptions } from '../engine/types.js';
 import {
   createShellToolRegistry,
   type ShellProposalState,
@@ -24,7 +24,7 @@ export interface ShellAgentTurnOptions extends RunnerBaseOptions {
 export interface ShellAgentTurnResult {
   text: string;
   proposal?: ShellProposalState['proposal'];
-  status: 'complete' | 'incomplete';
+  status: AgentStatus;
 }
 
 export async function runShellAgentTurn(

@@ -23,7 +23,7 @@ export default [
           depConstraints: [
             {
               sourceTag: 'scope:cli',
-              onlyDependOnLibsWithTags: ['scope:core'],
+              onlyDependOnLibsWithTags: ['scope:core', 'scope:mcp'],
             },
             {
               sourceTag: 'scope:mcp',

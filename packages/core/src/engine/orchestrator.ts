@@ -14,30 +14,44 @@ export async function runAgentLoop<TOOLS extends ToolSet>(
 ): Promise<AgentResult> {
   const steps: AgentStepSummary[] = [];
 
-  const result = await generateText({
-    model: opts.model,
-    system: opts.system,
-    prompt: opts.prompt,
-    tools: opts.tools,
-    stopWhen: stepCountIs(opts.maxSteps),
-    temperature: opts.temperature,
-    abortSignal: opts.abortSignal,
-    onStepFinish: (step) => {
-      const summary = summarizeStep(step, steps.length + 1);
-      steps.push(summary);
-      opts.onStepFinish?.(step);
-    },
-  });
+  try {
+    const result = await generateText({
+      model: opts.model,
+      system: opts.system,
+      prompt: opts.prompt,
+      tools: opts.tools,
+      stopWhen: stepCountIs(opts.maxSteps),
+      temperature: opts.temperature,
+      abortSignal: opts.abortSignal,
+      onStepFinish: (step) => {
+        const summary = summarizeStep(step, steps.length + 1);
+        steps.push(summary);
+        opts.onStepFinish?.(step);
+      },
+    });
 
-  const status = result.finishReason === 'stop' ? 'complete' : 'incomplete';
+    const status =
+      result.finishReason === 'stop' ? 'complete'
+      : result.finishReason === 'error' ? 'error'
+      : 'incomplete';
 
-  return {
-    status,
-    text: result.text,
-    steps,
-    finishReason: result.finishReason,
-    totalSteps: result.steps.length,
-  };
+    return {
+      status,
+      text: result.text,
+      steps,
+      finishReason: result.finishReason,
+      totalSteps: result.steps.length,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      status: 'error',
+      text: `Agent error: ${message}`,
+      steps,
+      finishReason: 'error',
+      totalSteps: steps.length,
+    };
+  }
 }
 
 export interface AgentStreamOptions<TOOLS extends ToolSet>
@@ -49,29 +63,45 @@ export interface AgentStreamOptions<TOOLS extends ToolSet>
 export async function runAgentStream<TOOLS extends ToolSet>(
   opts: AgentStreamOptions<TOOLS>,
 ): Promise<AgentResult> {
-  const result = streamText({
-    model: opts.model,
-    system: opts.system,
-    prompt: opts.prompt,
-    tools: opts.tools,
-    stopWhen: stepCountIs(opts.maxSteps),
-    temperature: opts.temperature,
-    abortSignal: opts.abortSignal,
-  });
+  try {
+    const result = streamText({
+      model: opts.model,
+      system: opts.system,
+      prompt: opts.prompt,
+      tools: opts.tools,
+      stopWhen: stepCountIs(opts.maxSteps),
+      temperature: opts.temperature,
+      abortSignal: opts.abortSignal,
+    });
 
-  let text = '';
-  for await (const part of result.textStream) {
-    text += part;
-    opts.onTextDelta?.(part);
+    let text = '';
+    for await (const part of result.textStream) {
+      text += part;
+      opts.onTextDelta?.(part);
+    }
+
+    const finishReason = await result.finishReason;
+
+    const status =
+      finishReason === 'stop' ? 'complete'
+      : finishReason === 'error' ? 'error'
+      : 'incomplete';
+
+    return {
+      status,
+      text,
+      steps: [],
+      finishReason,
+      totalSteps: 0,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return {
+      status: 'error',
+      text: `Agent error: ${message}`,
+      steps: [],
+      finishReason: 'error',
+      totalSteps: 0,
+    };
   }
-
-  const finishReason = await result.finishReason;
-
-  return {
-    status: finishReason === 'stop' ? 'complete' : 'incomplete',
-    text,
-    steps: [],
-    finishReason,
-    totalSteps: 0,
-  };
 }

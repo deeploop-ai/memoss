@@ -34,7 +34,7 @@ export interface RebuildOptions {
   ) => void;
 }
 
-export type RebuildSourceStatus = 'complete' | 'incomplete' | 'rejected';
+export type RebuildSourceStatus = 'complete' | 'incomplete' | 'rejected' | 'error';
 
 export interface RebuildSourceResult {
   source: string;
