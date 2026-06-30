@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memoss.dev/schemas/lint-report.json",
+  "title": "Memoss Lint Report",
+  "description": "JSON output from `memoss lint --report lint-report.json` (Phase 2a / M11).",
+  "type": "object",
+  "required": [
+    "health_score",
+    "page_count",
+    "summary",
+    "issues",
+    "provenance_coverage",
+    "generated_at"
+  ],
+  "properties": {
+    "health_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Deterministic health score (0–100)."
+    },
+    "page_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of content pages scanned (excludes index.md / log.md)."
+    },
+    "summary": {
+      "type": "object",
+      "required": ["errors", "warnings", "info"],
+      "properties": {
+        "errors": { "type": "integer", "minimum": 0 },
+        "warnings": { "type": "integer", "minimum": 0 },
+        "info": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "provenance_coverage": {
+      "type": "object",
+      "description": "Share of content pages with provenance frontmatter (M11).",
+      "required": [
+        "total_pages",
+        "with_sources",
+        "with_verified_at",
+        "sources_pct",
+        "verified_at_pct"
+      ],
+      "properties": {
+        "total_pages": { "type": "integer", "minimum": 0 },
+        "with_sources": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Pages with non-empty sources[] in frontmatter."
+        },
+        "with_verified_at": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Pages with verified_at ISO timestamp in frontmatter."
+        },
+        "sources_pct": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Round(with_sources / total_pages * 100)."
+        },
+        "verified_at_pct": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Round(with_verified_at / total_pages * 100)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "code", "message"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["error", "warning", "info"]
+          },
+          "code": {
+            "type": "string",
+            "description": "Machine-readable issue code (e.g. ORPHAN_PAGE, MISSING_SOURCES, STALE_VERIFIED_AT)."
+          },
+          "path": {
+            "type": "string",
+            "description": "Vault-relative page path when applicable."
+          },
+          "message": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "agent_summary": {
+      "type": "string",
+      "description": "Optional LLM lint agent narrative summary."
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp when the report was built."
+    }
+  },
+  "additionalProperties": false
+}

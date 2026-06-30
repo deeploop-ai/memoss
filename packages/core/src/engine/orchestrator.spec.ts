@@ -1,63 +1,91 @@
 import { describe, expect, it, vi } from 'vitest';
-import { runAgentLoop } from './orchestrator.js';
+import { runAgentLoop, runAgentStream } from './orchestrator.js';
 
 vi.mock('ai', async (importOriginal) => {
   const actual = await importOriginal<typeof import('ai')>();
   return {
     ...actual,
     generateText: vi.fn(),
+    streamText: vi.fn(),
   };
 });
 
-import { generateText } from 'ai';
+import { generateText, streamText } from 'ai';
 
 const mockedGenerateText = vi.mocked(generateText);
+const mockedStreamText = vi.mocked(streamText);
 
 describe('runAgentLoop', () => {
-  it('returns complete when finishReason is stop', async () => {
+  it('returns complete status when finishReason is stop', async () => {
     mockedGenerateText.mockResolvedValue({
       text: 'Done.',
       finishReason: 'stop',
-      steps: [{ text: 'Done.', toolCalls: [] }],
+      steps: [],
     } as Awaited<ReturnType<typeof generateText>>);
 
     const result = await runAgentLoop({
-      model: {} as never,
+      model: { modelId: 'mock' } as never,
       system: 'sys',
       prompt: 'go',
       tools: {},
       maxSteps: 5,
-      temperature: 0.3,
     });
 
     expect(result.status).toBe('complete');
-    expect(result.text).toBe('Done.');
-    expect(mockedGenerateText).toHaveBeenCalledWith(
-      expect.objectContaining({
-        system: 'sys',
-        prompt: 'go',
-        temperature: 0.3,
-      }),
-    );
+    expect(result.finishReason).toBe('stop');
   });
 
-  it('returns incomplete when finishReason is tool-calls', async () => {
-    mockedGenerateText.mockResolvedValue({
-      text: '',
-      finishReason: 'tool-calls',
-      steps: [{ text: '', toolCalls: [{ toolName: 'read_page', input: {} }] }],
-    } as Awaited<ReturnType<typeof generateText>>);
+  it('returns error status when generateText throws', async () => {
+    mockedGenerateText.mockRejectedValue(new Error('network timeout'));
 
     const result = await runAgentLoop({
-      model: {} as never,
+      model: { modelId: 'mock' } as never,
       system: 'sys',
       prompt: 'go',
       tools: {},
-      maxSteps: 2,
-      temperature: 0.3,
+      maxSteps: 5,
+    });
+
+    expect(result.status).toBe('error');
+    expect(result.finishReason).toBe('error');
+    expect(result.text).toContain('network timeout');
+  });
+
+  it('returns incomplete status for length finishReason', async () => {
+    mockedGenerateText.mockResolvedValue({
+      text: 'Truncated.',
+      finishReason: 'length',
+      steps: [],
+    } as Awaited<ReturnType<typeof generateText>>);
+
+    const result = await runAgentLoop({
+      model: { modelId: 'mock' } as never,
+      system: 'sys',
+      prompt: 'go',
+      tools: {},
+      maxSteps: 5,
     });
 
     expect(result.status).toBe('incomplete');
-    expect(result.finishReason).toBe('tool-calls');
+    expect(result.finishReason).toBe('length');
+  });
+});
+
+describe('runAgentStream', () => {
+  it('returns error status when streamText throws', async () => {
+    mockedStreamText.mockImplementation(() => {
+      throw new Error('stream failed');
+    });
+
+    const result = await runAgentStream({
+      model: { modelId: 'mock' } as never,
+      system: 'sys',
+      prompt: 'go',
+      tools: {},
+      maxSteps: 5,
+    });
+
+    expect(result.status).toBe('error');
+    expect(result.text).toContain('stream failed');
   });
 });

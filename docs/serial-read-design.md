@@ -1,8 +1,9 @@
 # 长文 / 整本书导入（Serial Read）技术设计
 
-> **状态：** Draft v0.1  
+> **状态：** 📝 设计稿 v0.1 — **实现未开始**（M12–M14；当前焦点 M12 Works 基础设施）  
 > **日期：** 2026-06-27  
-> **决策：** 整本书导入作为 **编排层操作（Read / Serial Ingest）** 内置，复用现有 Extract + Ingest Runner；**不**新增 Book Ingest Agent，**不**以独立 schema pack 作为首要机制。
+> **决策：** 整本书导入作为 **编排层操作（Read / Serial Ingest）** 内置，复用现有 Extract + Ingest Runner；**不**新增 Book Ingest Agent，**不**以独立 schema pack 作为首要机制。  
+> **索引：** [DOC-STATUS.md](DOC-STATUS.md) · [phase-2-plan.md § M12–M14](phase-2-plan.md#milestone-12works-基础设施week-2-3-未开始)
 
 ---
 
@@ -21,7 +22,7 @@
 - 不为此单独新增 schema pack（目录约定可通过 vault `instructions.md` 或后续 profile 扩展；见 §11）。
 - 不替换现有单次 `memoss ingest` 语义。
 - 不实现向量检索 / hybrid search（Query 侧仍走现有 index + grep；Phase 2 另行规划）。
-- 本文档 **仅设计，不实现**。
+- 本文档 **为 M12–M14 实现规格**；代码尚未落地（2026-06-30）。
 
 ---
 

@@ -1,6 +1,31 @@
 import { MemossError } from '../errors.js';
+import type { SourceRef } from '../okf/types.js';
 import type { PoliciesConfig, PolicyAction } from './config.js';
 import type { PolicyWarning } from './types.js';
+
+/** Merge source refs by source_id when augmenting a page; append ingest auto-ref when provided. */
+export function mergeAugmentSources(
+  existing: SourceRef[] | undefined,
+  incoming: SourceRef[] | undefined,
+  autoSource?: SourceRef,
+): SourceRef[] {
+  const byId = new Map<string, SourceRef>();
+
+  for (const ref of existing ?? []) {
+    byId.set(ref.source_id, ref);
+  }
+  for (const ref of incoming ?? []) {
+    const prior = byId.get(ref.source_id);
+    byId.set(ref.source_id, prior ? { ...prior, ...ref } : ref);
+  }
+  if (autoSource && !byId.has(autoSource.source_id)) {
+    byId.set(autoSource.source_id, autoSource);
+  }
+
+  return [...byId.values()].sort((left, right) =>
+    left.source_id.localeCompare(right.source_id),
+  );
+}
 
 function normalizePath(path: string): string {
   return path.replace(/\\/g, '/').replace(/^\.\/+/, '');

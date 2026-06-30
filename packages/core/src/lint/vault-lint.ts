@@ -46,6 +46,7 @@ export async function runVaultLintChecks(
   return {
     issues: dedupeIssues(issues),
     pageCount: base.pageCount,
+    provenanceCoverage: base.provenanceCoverage,
   };
 }
 

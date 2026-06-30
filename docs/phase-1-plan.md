@@ -1,5 +1,8 @@
 # Memoss — Phase 1 Implementation Plan
 
+> **文档状态：** ✅ **已完成（归档）** — M0–M10 全部交付（2026-06-30 核对）。  
+> 当前活跃计划见 [Phase 2 Plan](phase-2-plan.md) · 文档索引见 [DOC-STATUS](DOC-STATUS.md)。
+
 **Date:** 2026-06-23
 **Duration:** 0–6 months (Phase 1a: 0–4 months · Phase 1b: 4–6 months)
 **Goal:** Open-source CLI that developers adopt for personal and project knowledge management. Validate the core agent loop with trust primitives.
@@ -53,9 +56,9 @@
 5. Set up GitHub Actions: lint → test → build on PR
 
 **Exit criteria:**
-- [ ] All projects build with `pnpm nx build`
-- [ ] `pnpm nx test` runs across all projects
-- [ ] CI pipeline green on `main`
+- [x] All projects build with `pnpm nx build`
+- [x] `pnpm nx test` runs across all projects
+- [x] CI pipeline green on `main`
 
 ---
 
@@ -109,9 +112,9 @@ interface OKFDocument {
 **Tests:** Round-trip, dual-mode validation, reserved filenames, unknown frontmatter preserved, knowledge-catalog sample bundles parse cleanly.
 
 **Exit criteria:**
-- [ ] Parse/serialize/validate passes OKF conformance
-- [ ] All knowledge-catalog sample bundles parse without errors
-- [ ] Validator rejects agent writes missing `title` or `description`
+- [x] Parse/serialize/validate passes OKF conformance
+- [x] All knowledge-catalog sample bundles parse without errors
+- [x] Validator rejects agent writes missing `title` or `description`
 
 ---
 
@@ -149,10 +152,10 @@ interface GitAdapter {
 ```
 
 **Exit criteria:**
-- [ ] `FsStore` reads/writes/deletes OKF files
-- [ ] `SimpleGitAdapter` supports draft branch create/merge
-- [ ] Three source adapters list and read items
-- [ ] Graceful handling of missing files, non-git directories
+- [x] `FsStore` reads/writes/deletes OKF files
+- [x] `SimpleGitAdapter` supports draft branch create/merge
+- [x] Three source adapters list and read items
+- [x] Graceful handling of missing files, non-git directories
 
 ---
 
@@ -190,9 +193,9 @@ policies/
 - Write to draft branch when `draft_branch: true` in config
 
 **Exit criteria:**
-- [ ] All tools defined with Zod schemas and unit tests
-- [ ] `write_page` read-before-write guard tested
-- [ ] Tool registry aggregates for agent injection
+- [x] All tools defined with Zod schemas and unit tests
+- [x] `write_page` read-before-write guard tested
+- [x] Tool registry aggregates for agent injection
 
 ---
 
@@ -261,12 +264,12 @@ engine/
 - API keys 通过 `api_key_env` 或 provider 默认 env 读取
 
 **Exit criteria:**
-- [ ] Ingest: web URL → meaningful OKF pages on draft branch
-- [ ] Ingest: augments existing pages without destroying content
-- [ ] Query: cited answers from existing KB
-- [ ] Query `--save`: writes Note with bidirectional links
-- [ ] Lint: identifies contradictions and orphans
-- [ ] Works with Claude and GPT
+- [x] Ingest: web URL → meaningful OKF pages on draft branch
+- [x] Ingest: augments existing pages without destroying content
+- [x] Query: cited answers from existing KB
+- [x] Query `--save`: writes Note with bidirectional links
+- [x] Lint: identifies contradictions and orphans
+- [x] Works with Claude and GPT
 
 ---
 
@@ -346,12 +349,12 @@ provenance:
 ```
 
 **Exit criteria:**
-- [ ] `memoss init` creates valid vault from schema pack
-- [ ] `memoss ingest` end-to-end on web URL with draft branch
-- [ ] `memoss approve` merges draft to main
-- [ ] `memoss query --save` persists answer
-- [ ] `memoss lint` produces actionable report
-- [ ] `memoss serve` starts MCP server
+- [x] `memoss init` creates valid vault from schema pack
+- [x] `memoss ingest` end-to-end on web URL with draft branch
+- [x] `memoss approve` merges draft to main
+- [x] `memoss query --save` persists answer
+- [x] `memoss lint` produces actionable report
+- [x] `memoss serve` starts MCP server
 
 ---
 
@@ -366,8 +369,8 @@ provenance:
 - Vault path configured at server start
 
 **Exit criteria:**
-- [ ] MCP `tools/list` advertises all tools
-- [ ] Claude Desktop (or equivalent) can call tools end-to-end
+- [x] MCP `tools/list` advertises all tools
+- [x] Claude Desktop (or equivalent) can call tools end-to-end
 
 ---
 
@@ -387,9 +390,9 @@ provenance:
 3. **Schema packs:** `schema-packs/personal/`, `schema-packs/research/`
 
 **Exit criteria:**
-- [ ] `memoss view` opens interactive graph
-- [ ] Quickstart: zero to first ingest in < 5 minutes
-- [ ] Two schema packs available
+- [x] `memoss view` opens interactive graph
+- [x] Quickstart: zero to first ingest in < 5 minutes
+- [x] Two schema packs available
 
 ---
 
@@ -428,9 +431,9 @@ memoss ingest <source> --interactive
 - Then proceeds to draft-branch write flow
 
 **Exit criteria:**
-- [ ] Crawl from seed URLs enriches existing concepts without noise reference pages
-- [ ] Interactive mode shows summary before write
-- [ ] Reference pages created only when four conditions met
+- [x] Crawl from seed URLs enriches existing concepts without noise reference pages
+- [x] Interactive mode shows summary before write
+- [x] Reference pages created only when four conditions met
 
 ---
 
@@ -468,10 +471,10 @@ sources:
 **Config:** `provenance.enabled: true` in `.memoss/config.yaml`
 
 **Exit criteria:**
-- [ ] Ingest updates manifest with content hash
-- [ ] Agent writes `sources` + `verified_at` in frontmatter
-- [ ] Lint detects stale pages when source re-ingested with new hash
-- [ ] `health_score` computed and displayed in `memoss lint` output
+- [x] Ingest updates manifest with content hash
+- [x] Agent writes `sources` + `verified_at` in frontmatter
+- [x] Lint detects stale pages when source re-ingested with new hash
+- [x] `health_score` computed and displayed in `memoss lint` output
 
 ---
 
@@ -485,8 +488,8 @@ sources:
 3. `docs/mac-bridge.md` — Stub pointing to Phase 2 catalog-bridge work
 
 **Exit criteria:**
-- [ ] Both examples ingest and query successfully
-- [ ] GA4 example demonstrates data/ + references/ layout
+- [x] Both examples ingest and query successfully
+- [x] GA4 example demonstrates data/ + references/ layout
 
 ---
 

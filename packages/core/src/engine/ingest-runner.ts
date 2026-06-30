@@ -1,4 +1,5 @@
 import { registerIngestProvenance } from '../provenance/manifest.js';
+import { sourceManifestId } from '../provenance/hash.js';
 import { tryHashLocalSource } from '../skills/source-identity.js';
 import { MemossError } from '../errors.js';
 import { buildSystemPrompt, createPromptContext } from './context.js';
@@ -131,6 +132,14 @@ export async function runIngest(
 
   setup.ctx.policies.reset();
 
+  const rawContentHash =
+    resolved.extractMeta?.raw_content_hash ??
+    tryHashLocalSource(resolved.originalSource, opts.vaultRoot);
+  setup.ctx.ingestSourceId = sourceManifestId(
+    resolved.originalSource,
+    rawContentHash,
+  );
+
   let draftBranch: string | undefined;
   if (useDraft) {
     draftBranch = await ensureDraftBranch(setup.ctx, 'ingest');
@@ -174,9 +183,7 @@ export async function runIngest(
   if (trackProvenance && agentResult.status === 'complete') {
     registerIngestProvenance(opts.vaultRoot, {
       sourceUri: resolved.originalSource,
-      rawContentHash:
-        resolved.extractMeta?.raw_content_hash ??
-        tryHashLocalSource(resolved.originalSource, opts.vaultRoot),
+      rawContentHash,
       affects,
     });
   }

@@ -103,15 +103,20 @@ Uses `agent.lightweight_model` by default.
 
 ### `memoss lint`
 
-Check vault health: contradictions, orphans, missing cross-refs, index gaps.
+Check vault health: contradictions, orphans, missing cross-refs, index gaps, provenance coverage.
 
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--fix` | false | Propose fixes on a draft branch |
 | `--json` | false | JSON output (when supported) |
+| `--report` | — | Write `lint-report.json` (see [lint-report schema](lint-report-schema.json)) |
+| `--min-score` | — | Exit non-zero when `health_score` is below N |
+
+The report JSON includes `provenance_coverage` (`sources_pct`, `verified_at_pct`) for M11 provenance tracking.
 
 ```bash
 memoss lint
+memoss lint --report lint-report.json
 memoss lint --fix && memoss approve
 ```
 

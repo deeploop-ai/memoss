@@ -12,6 +12,15 @@ export interface LintIssue {
 export interface LintCheckResult {
   issues: LintIssue[];
   pageCount: number;
+  provenanceCoverage: ProvenanceCoverage;
+}
+
+export interface ProvenanceCoverage {
+  total_pages: number;
+  with_sources: number;
+  with_verified_at: number;
+  sources_pct: number;
+  verified_at_pct: number;
 }
 
 const CITATIONS_HEADING = /^#\s+Citations\s*$/m;
@@ -28,6 +37,8 @@ export async function runDeterministicLint(
   const contentPages = pages.filter((page) => !isReservedPage(page));
   const issues: LintIssue[] = [];
   const inboundLinks = new Map<string, number>();
+  let withSources = 0;
+  let withVerifiedAt = 0;
 
   for (const page of contentPages) {
     if (!(await store.exists(page))) {
@@ -46,6 +57,15 @@ export async function runDeterministicLint(
       });
     }
 
+    const sources = fm.sources;
+    const hasSources = Array.isArray(sources) && sources.length > 0;
+    if (hasSources) {
+      withSources += 1;
+    }
+    if (typeof fm.verified_at === 'string' && fm.verified_at) {
+      withVerifiedAt += 1;
+    }
+
     if (!CITATIONS_HEADING.test(body)) {
       const hasSubstance = body
         .split('\n')
@@ -56,6 +76,20 @@ export async function runDeterministicLint(
           code: 'MISSING_CITATIONS',
           path: page,
           message: 'Substantive content without # Citations section',
+        });
+      }
+    }
+
+    if (!hasSources) {
+      const hasSubstance = body
+        .split('\n')
+        .some((line) => line.trim().length >= 80 && !line.trim().startsWith('#'));
+      if (hasSubstance) {
+        issues.push({
+          severity: 'info',
+          code: 'MISSING_SOURCES',
+          path: page,
+          message: 'Substantive content without sources in frontmatter',
         });
       }
     }
@@ -101,5 +135,16 @@ export async function runDeterministicLint(
     }
   }
 
-  return { issues, pageCount: contentPages.length };
+  const totalPages = contentPages.length;
+  const provenanceCoverage: ProvenanceCoverage = {
+    total_pages: totalPages,
+    with_sources: withSources,
+    with_verified_at: withVerifiedAt,
+    sources_pct:
+      totalPages === 0 ? 100 : Math.round((withSources / totalPages) * 100),
+    verified_at_pct:
+      totalPages === 0 ? 100 : Math.round((withVerifiedAt / totalPages) * 100),
+  };
+
+  return { issues, pageCount: totalPages, provenanceCoverage };
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MemossError } from '../errors.js';
-import { AugmentPolicy } from './augment.js';
+import { AugmentPolicy, mergeAugmentSources } from './augment.js';
 import { parsePoliciesConfig } from './config.js';
 
 function createPolicy() {
@@ -37,5 +37,31 @@ describe('AugmentPolicy', () => {
       { resource: 'https://example.com/b' },
     );
     expect(violation?.code).toBe('RESOURCE_CHANGED');
+  });
+});
+
+describe('mergeAugmentSources', () => {
+  it('preserves existing sources and appends new ones by source_id', () => {
+    const merged = mergeAugmentSources(
+      [{ source_id: 'example-com-a', section: 'intro' }],
+      [{ source_id: 'example-com-b' }],
+      { source_id: 'example-com-c' },
+    );
+
+    expect(merged).toEqual([
+      { source_id: 'example-com-a', section: 'intro' },
+      { source_id: 'example-com-b' },
+      { source_id: 'example-com-c' },
+    ]);
+  });
+
+  it('merges incoming fields without dropping prior source_id entries', () => {
+    const merged = mergeAugmentSources(
+      [{ source_id: 'example-com-a' }],
+      [{ source_id: 'example-com-a', section: 'details' }],
+      { source_id: 'example-com-a' },
+    );
+
+    expect(merged).toEqual([{ source_id: 'example-com-a', section: 'details' }]);
   });
 });

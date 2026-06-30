@@ -796,7 +796,11 @@ interface CatalogBridge {
 
 ## 9. Three-Phase Roadmap
 
-### Phase 1a (Months 0–4): Core Loop Validation
+> ⚠️ **部分过期（2026-06-30）：** 本节 Phase 2a 仍以企业 catalog-bridge / BigQuery 连接器为主叙事。  
+> **当前 SSOT：** [phase-2-plan.md](phase-2-plan.md)（个人/小团队；catalog-bridge 推迟 Phase 3+）。  
+> 完成度索引：[DOC-STATUS.md](DOC-STATUS.md)
+
+### Phase 1a (Months 0–4): Core Loop Validation ✅ 已完成
 
 **Goal:** Open-source CLI; validate ingest/query/lint with OKF; establish trust primitives.
 
@@ -814,7 +818,9 @@ interface CatalogBridge {
 
 **Validation scenario:** Karpathy-style research wiki from web articles and PDFs.
 
-### Phase 1b (Months 4–6): Crawl, Provenance, Quality
+### Phase 1b (Months 4–6): Crawl, Provenance, Quality ✅ 已完成
+
+> M11（2026-06-30）增强了 agent 页级 `sources` / `verified_at` 写回与 E2E；见 phase-2-plan M11。
 
 **Goal:** knowledge-catalog-grade web ingestion; provenance-aware lint.
 
@@ -829,7 +835,10 @@ interface CatalogBridge {
 
 **Validation scenario:** Enrich a data documentation bundle from seed URLs (knowledge-catalog GA4 pattern).
 
-### Phase 2a (Months 6–12): Catalog Bridge & Enrich
+### Phase 2a (Months 6–12): Catalog Bridge & Enrich ⚠️ 叙事已修订
+
+> **过期说明：** 下表含 `@memoss/catalog-bridge`、BigQuery connectors 等企业向项 — 已在 [phase-2-plan §1.2](phase-2-plan.md#12-非目标phase-2-明确不做) 明确 **不做**。  
+> **实际 Phase 2a 焦点：** Provenance 信任（M11 ✅）→ Serial Read（M12–M14）→ 图片 ingest（M15）。
 
 **Goal:** Enterprise data catalog workflow; team-ready git review; long-form source compiles.
 
@@ -845,7 +854,9 @@ interface CatalogBridge {
 
 **Validation scenario:** knowledge-catalog ecommerce BQ demo end-to-end; compile a technical book PDF into a cross-linked research vault.
 
-### Phase 2b (Months 12–18): Discover, Desktop, Search
+### Phase 2b (Months 12–18): Discover, Desktop, Search 📋 已规划
+
+> Desktop/Web UI 在 phase-2-plan 中推迟至 2b 末期评估；Discover / hybrid search 见 M16–M17。
 
 **Goal:** End-user product; local + remote discovery.
 

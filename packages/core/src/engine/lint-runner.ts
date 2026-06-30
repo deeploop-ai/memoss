@@ -63,6 +63,7 @@ export async function runLint(opts: LintRunOptions): Promise<LintRunResult> {
   let report = buildLintReport({
     issues: deterministic.issues,
     pageCount: deterministic.pageCount,
+    provenanceCoverage: deterministic.provenanceCoverage,
   });
 
   let draftBranch: string | undefined;
@@ -71,9 +72,7 @@ export async function runLint(opts: LintRunOptions): Promise<LintRunResult> {
   }
 
   const promptCtx = createPromptContext(opts.vaultRoot, setup.config);
-  const fixInstructions = opts.fix
-    ? `${LINT_FIX_INSTRUCTIONS}\n\nWhen fixing orphan pages, add file-relative cross-links from related concept pages.`
-    : '';
+  const fixInstructions = opts.fix ? LINT_FIX_INSTRUCTIONS : '';
 
   const system = buildSystemPrompt({
     ...promptCtx,
@@ -109,6 +108,7 @@ export async function runLint(opts: LintRunOptions): Promise<LintRunResult> {
   report = buildLintReport({
     issues: deterministic.issues,
     pageCount: deterministic.pageCount,
+    provenanceCoverage: deterministic.provenanceCoverage,
     agentSummary: agentResult.text,
   });
 
@@ -149,5 +149,6 @@ export async function runLintDeterministic(
   return buildLintReport({
     issues: check.issues,
     pageCount: check.pageCount,
+    provenanceCoverage: check.provenanceCoverage,
   });
 }

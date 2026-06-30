@@ -4,6 +4,7 @@ import {
   enforcePolicyViolation,
   violationToWarning,
 } from '../policies/enforce.js';
+import { mergeAugmentSources } from '../policies/augment.js';
 import type { ToolContext } from './context.js';
 import { defineTool } from './define-tool.js';
 import {
@@ -23,6 +24,7 @@ import {
   writeIndexSchema,
   writePageSchema,
 } from './tool-schemas.js';
+import type { SourceRef } from '../okf/types.js';
 import { mergeFrontmatter, normalizeToolPath, toolResult } from './utils.js';
 
 export function createReadPageTool(ctx: ToolContext) {
@@ -60,9 +62,26 @@ export function createWritePageTool(ctx: ToolContext) {
 
       const exists = await ctx.store.exists(normalized);
       const existing = exists ? await ctx.store.readPage(normalized) : null;
-      const mergedFrontmatter = existing
+      let mergedFrontmatter = existing
         ? mergeFrontmatter(existing.frontmatter, frontmatter)
         : frontmatter;
+
+      const existingSources = existing?.frontmatter.sources as SourceRef[] | undefined;
+      const incomingSources = frontmatter.sources as SourceRef[] | undefined;
+      const autoSource = ctx.ingestSourceId
+        ? { source_id: ctx.ingestSourceId }
+        : undefined;
+      mergedFrontmatter = {
+        ...mergedFrontmatter,
+        sources: mergeAugmentSources(existingSources, incomingSources, autoSource),
+      };
+
+      if (!mergedFrontmatter.verified_at) {
+        mergedFrontmatter = {
+          ...mergedFrontmatter,
+          verified_at: new Date().toISOString(),
+        };
+      }
 
       if (existing) {
         for (const check of [

@@ -7,7 +7,7 @@
 [中文文档](README_ZH.md)
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Phase](https://img.shields.io/badge/phase-1a-yellow.svg)](docs/phase-1-plan.md)
+[![Phase](https://img.shields.io/badge/phase-2a-green.svg)](docs/phase-2-plan.md)
 [![Design](https://img.shields.io/badge/design-v0.2-blue.svg)](docs/product-design.md)
 
 ---

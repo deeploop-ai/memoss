@@ -95,4 +95,16 @@ For issues you can resolve automatically:
 - Create/checkout the draft branch if not already on one.
 - Apply fixes via \`write_page\` / \`write_index\` (read before write).
 - Commit with \`git_commit\` when done.
-- Prefer minimal, targeted edits over large rewrites.`;
+- Prefer minimal, targeted edits over large rewrites.
+
+### Orphan pages (ORPHAN_PAGE)
+
+When a page has no inbound markdown links:
+1. \`read_page\` the orphan and one or more related hub pages in the same directory.
+2. Add a file-relative link from the hub body (e.g. \`See also [Orphan Title](orphan.md)\`) or from \`index.md\` via \`write_index\`.
+3. Preserve existing headings and body content; only add cross-links or index entries.
+4. Do not delete the orphan page unless it is truly duplicate content.
+
+### Missing provenance (MISSING_SOURCES)
+
+When frontmatter lacks \`sources\` on a substantive page, add \`sources: [{ source_id: <manifest-id> }]\` if you can infer the source from \`# Citations\` or vault context.`;

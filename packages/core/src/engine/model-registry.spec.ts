@@ -63,6 +63,22 @@ describe('parseModelOverride', () => {
   });
 
   it('rejects invalid format', () => {
-    expect(() => parseModelOverride('invalid')).toThrow(MemossError);
+    try {
+      parseModelOverride('invalid');
+      expect.unreachable('should throw');
+    } catch (error) {
+      expect(error).toBeInstanceOf(MemossError);
+      expect((error as MemossError).code).toBe('INVALID_ARGUMENT');
+    }
+  });
+
+  it('rejects unsupported provider', () => {
+    try {
+      parseModelOverride('gemini/gemini-pro');
+      expect.unreachable('should throw');
+    } catch (error) {
+      expect(error).toBeInstanceOf(MemossError);
+      expect((error as MemossError).code).toBe('INVALID_ARGUMENT');
+    }
   });
 });

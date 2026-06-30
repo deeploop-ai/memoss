@@ -32,6 +32,7 @@ Audit this knowledge base for quality issues. Produce a structured lint report.
 - **Index gaps** — pages exist in a directory but are missing from its `index.md`.
 - **Frontmatter** — missing `title` or `description` on agent-authored pages.
 - **Citations** — factual pages lacking a `# Citations` section (warning).
+- **Provenance** — substantive pages missing `sources` in frontmatter (info). When fixing, add `sources` with the correct manifest `source_id` rather than deleting content.
 
 {{fix_instructions}}
 

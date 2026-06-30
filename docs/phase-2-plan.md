@@ -1,5 +1,8 @@
 # Memoss — Phase 2 开发计划（个人与小团队）
 
+> **文档状态：** 🚧 **活跃** — M11 ✅ 已完成（2026-06-30）；**当前焦点 M12**（Works 基础设施）。  
+> 完成度索引：[DOC-STATUS.md](DOC-STATUS.md)
+
 **日期：** 2026-06-30  
 **周期：** 6–14 个月（Phase 2a：0–8 周 · Phase 2b：8–20 周 · Phase 2c：按需）  
 **定位：** 个人研究者、独立开发者、5–15 人小团队 — **不**以企业数据目录 / Dataplex 同步为主叙事  
@@ -44,14 +47,14 @@ Phase 1 已验证 **Ingest → Query → Lint → Approve** 核心环。Phase 2 
 
 ### Phase 2a（0–8 周）— 读得进 + 信得过
 
-| 交付 | 包/路径 | 用户可见 |
-|------|---------|----------|
-| Serial Read 编排 | `packages/core/src/works/` | `memoss read` |
-| 书级 Tuning | `packages/core/src/engine/book-tuning-runner.ts` | 整书 ingest 质量 |
-| Provenance 写回闭环 | ingest prompt + policies | 页 frontmatter 含 `sources` / `verified_at` |
-| E2E 信任测试 | `packages/core/test/e2e/` | CI 全链路绿 |
-| 图片附件 ingest | extract skill + ingest 适配 | 本地图片进 vault |
-| MCP `run_read` | `packages/mcp/` | Cherry Studio 长文入库 |
+| 交付 | 包/路径 | 用户可见 | 状态 |
+|------|---------|----------|------|
+| Provenance 写回闭环 | ingest prompt + policies | 页 frontmatter 含 `sources` / `verified_at` | ✅ M11 |
+| E2E 信任测试 | `packages/core/test/e2e/` | CI 全链路绿 | ✅ M11 |
+| Serial Read 编排 | `packages/core/src/works/` | `memoss read` | 📋 M12–M14 |
+| 书级 Tuning | `packages/core/src/engine/book-tuning-runner.ts` | 整书 ingest 质量 | 📋 M13 |
+| 图片附件 ingest | extract skill + ingest 适配 | 本地图片进 vault | 📋 M15 |
+| MCP `run_read` | `packages/mcp/` | Cherry Studio 长文入库 | 📋 M14 |
 
 ### Phase 2b（8–20 周）— 查得准 + 分得出去
 
@@ -77,8 +80,8 @@ Phase 1 已验证 **Ingest → Query → Lint → Approve** 核心环。Phase 2 
 ```
 Phase 2a（Week 1–8）— 信任 + 长文
 ──────────────────────────────────
-M11: Provenance 写回 + E2E           (W1–2)
-M12: Works 基础设施                  (W2–3)
+M11: Provenance 写回 + E2E           (W1–2)  ✅ 已完成
+M12: Works 基础设施                  (W2–3)  ← 当前
 M13: Serial Read 核心编排            (W3–5)
 M14: memoss read CLI + MCP           (W5–6)
 M15: 图片 ingest + 体验收尾          (W6–8)
@@ -98,46 +101,46 @@ M20: 文档 + 示例 + Phase 2 收尾      (W18–20)
 
 ## 4. Phase 2a — 详细任务分解
 
-### Milestone 11：Provenance 写回闭环 + E2E（Week 1–2）
+### Milestone 11：Provenance 写回闭环 + E2E（Week 1–2）✅ 已完成
 
 **目标：** 用户 approve 前能信任 Agent 写出的页与源之间的可追溯关系；CI 覆盖核心环。
 
 #### 11.1 Ingest Agent 写回 frontmatter
 
-| ID | 任务 | 文件 | 验收标准 |
-|----|------|------|----------|
-| 11.1.1 | 更新 `ingest.md`：要求每次 `write_page` 写入 `sources` 数组 | `packages/core/src/engine/prompts/ingest.md` | prompt 含示例 frontmatter |
-| 11.1.2 | 更新 `augment` 策略：更新页时合并而非覆盖 `sources` | `packages/core/src/policies/augment.ts` | 单测：旧 sources 保留 + 新 source 追加 |
-| 11.1.3 | `write_page` 工具：自动填充 `verified_at`（ISO 时间） | `packages/core/src/tools/page-tools.ts` | agent 不写时工具层补全 |
-| 11.1.4 | ingest runner 传入 `source_id` 到 tool context | `packages/core/src/engine/ingest-runner.ts` | manifest 注册后 ID 可用 |
-| 11.1.5 | `data-catalog` overlay 同步要求 `# Citations` + sources | `packages/core/src/engine/prompts/overlays/data-catalog.md` | GA4 示例 ingest 后 frontmatter 合规 |
+| 状态 | ID | 任务 | 文件 | 验收标准 |
+|------|----|------|------|----------|
+| ✅ | 11.1.1 | 更新 `ingest.md`：要求每次 `write_page` 写入 `sources` 数组 | `packages/core/src/engine/prompts/ingest.md` | prompt 含示例 frontmatter |
+| ✅ | 11.1.2 | 更新 `augment` 策略：更新页时合并而非覆盖 `sources` | `packages/core/src/policies/augment.ts` | 单测：旧 sources 保留 + 新 source 追加 |
+| ✅ | 11.1.3 | `write_page` 工具：自动填充 `verified_at`（ISO 时间） | `packages/core/src/tools/page-tools.ts` | agent 不写时工具层补全 |
+| ✅ | 11.1.4 | ingest runner 传入 `source_id` 到 tool context | `packages/core/src/engine/ingest-runner.ts` | manifest 注册后 ID 可用 |
+| ✅ | 11.1.5 | `data-catalog` overlay 同步要求 `# Citations` + sources | `packages/core/src/engine/prompts/overlays/data-catalog.md` | GA4 示例 ingest 后 frontmatter 合规 |
 
 #### 11.2 Lint 与 provenance 对齐
 
-| ID | 任务 | 文件 | 验收标准 |
-|----|------|------|----------|
-| 11.2.1 | 缺 `sources` 的 agent 新页 → lint `info`（非 error，避免旧 vault 爆炸） | `packages/core/src/lint/checks.ts` | 可 `--min-score` 配置是否升级 |
-| 11.2.2 | `lint --fix` orphan 补链：prompt 强化 + E2E 样例 | `packages/core/src/engine/prompts/lint.md` | 固定 fixture vault 跑通 |
-| 11.2.3 | `lint-report.json` 输出 `provenance_coverage` 指标 | `packages/core/src/lint/vault-lint.ts` | JSON schema 文档化 |
+| 状态 | ID | 任务 | 文件 | 验收标准 |
+|------|----|------|------|----------|
+| ✅ | 11.2.1 | 缺 `sources` 的 agent 新页 → lint `info`（非 error，避免旧 vault 爆炸） | `packages/core/src/lint/checks.ts` | 可 `--min-score` 配置是否升级 |
+| ✅ | 11.2.2 | `lint --fix` orphan 补链：prompt 强化 + E2E 样例 | `packages/core/src/engine/prompts/lint.md` | 固定 fixture vault 跑通 |
+| ✅ | 11.2.3 | `lint-report.json` 输出 `provenance_coverage` 指标 | `packages/core/src/lint/vault-lint.ts` | JSON schema 文档化 |
 
 #### 11.3 E2E 测试（mock model）
 
-| ID | 任务 | 文件 | 验收标准 |
-|----|------|------|----------|
-| 11.3.1 | Mock LLM provider：确定性 tool-call 序列 | `packages/core/test/e2e/mock-model.ts` | 可注入 ingest/query/lint |
-| 11.3.2 | 场景：web ingest → draft → approve → query 命中新页 | `packages/core/test/e2e/core-loop.spec.ts` | `pnpm nx test core --testPathPattern=e2e` 绿 |
-| 11.3.3 | 场景：re-ingest 同 URL hash 变化 → lint stale 警告 | `packages/core/test/e2e/provenance-stale.spec.ts` | `STALE_VERIFIED_AT` 出现 |
-| 11.3.4 | CI workflow 加入 e2e job | `.github/workflows/` | PR 必跑 |
+| 状态 | ID | 任务 | 文件 | 验收标准 |
+|------|----|------|------|----------|
+| ✅ | 11.3.1 | Mock LLM provider：确定性 tool-call 序列 | `packages/core/test/e2e/mock-model.ts` | 可注入 ingest/query/lint |
+| ✅ | 11.3.2 | 场景：web ingest → draft → approve → query 命中新页 | `packages/core/test/e2e/core-loop.spec.ts` | `pnpm nx test core -- test/e2e/` 绿 |
+| ✅ | 11.3.3 | 场景：re-ingest 同 URL hash 变化 → lint stale 警告 | `packages/core/test/e2e/provenance-stale.spec.ts` | `STALE_VERIFIED_AT` 出现 |
+| ✅ | 11.3.4 | CI workflow 加入 e2e job | `.github/workflows/` | PR 必跑 |
 
 **M11 退出标准：**
 
-- [ ] 新 ingest 的页 100% 含 `verified_at`；90%+ 含 `sources`
-- [ ] E2E core-loop 在 CI 稳定通过（3 次连续绿）
-- [ ] `quality-todo.md` P0 E2E 项标记完成
+- [x] 新 ingest 的页 100% 含 `verified_at`；90%+ 含 `sources`
+- [x] E2E core-loop 在 CI 稳定通过（3 次连续绿）
+- [x] `quality-todo.md` P0 E2E 项标记完成
 
 ---
 
-### Milestone 12：Works 基础设施（Week 2–3）
+### Milestone 12：Works 基础设施（Week 2–3）📋 未开始
 
 **目标：** Work Manifest 读写、章节拆分、状态持久化 — 无 LLM 的确定性层。
 
@@ -531,11 +534,13 @@ M20: 文档 + 示例 + Phase 2 收尾      (W18–20)
 
 ## 11. 相关文档
 
+- [文档状态索引](DOC-STATUS.md)
 - [Phase 1 计划](phase-1-plan.md)
 - [Serial Read 技术设计](serial-read-design.md)
 - [产品设计 v0.2](product-design.md)
 - [质量待办](quality-todo.md)
 - [CLI 参考](cli-reference.md)
+- [lint-report JSON Schema](lint-report-schema.json)
 - [Extraction Skills 设计](extraction-skills-design.md)
 
 ---

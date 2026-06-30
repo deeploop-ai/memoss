@@ -1,0 +1,17 @@
+name: orphan-fix-fixture
+okf_version: "0.1"
+schema_pack: research
+agent:
+  default_model:
+    provider: anthropic
+    model: claude-sonnet-4-6
+  lightweight_model:
+    provider: anthropic
+    model: claude-haiku-4-5
+  max_steps: 10
+  temperature: 0.2
+git:
+  enabled: false
+  draft_branch: false
+provenance:
+  enabled: false

@@ -1,5 +1,6 @@
 # Memoss 知识库质量 — 待办与延后项
 
+> **文档状态：** 🚧 活跃 backlog（2026-06-30）。M11 / E2E / orphan-fix 已关闭 — 见 [DOC-STATUS.md](DOC-STATUS.md)。  
 > 本文档记录 v2 质量方案中 **暂未实现** 或 **仅部分实现** 的优化项。  
 > P0 已实现项见各模块代码与 `docs/product-design.md`。
 
@@ -26,7 +27,7 @@
 
 - [x] provenance 过时检测接入 lint runner（config 已有 `stale_check_on_lint`）
 - [~] 跨页矛盾检测（LLM 批处理，非确定性 — lint prompt 已引导）
-- [~] `lint --fix` 对 orphan 页自动补链（prompt 已写，需更多 E2E 验证）
+- [x] `lint --fix` 对 orphan 页自动补链（prompt 已写，需更多 E2E 验证）
 - [x] CI 门禁：`health_score < N` 时 exit non-zero（`--min-score` / exit 6）
 - [x] `lint --report lint-report.json`
 
@@ -88,12 +89,13 @@
 - [ ] Shell Agent 工具集暴露为 MCP tools（与 CLI 同构）
 - [ ] Policy 违规写入 structured lint-report
 - [ ] Ingest 后自动 `instructions.md` 共演化提案（TUI「写入 schema？」）
-- [ ] E2E 测试：mock model 全链路 ingest → approve → query
+- [x] E2E 测试：mock model 全链路 ingest → approve → query
 
 ---
 
 ## 参考
 
+- [DOC-STATUS.md](./DOC-STATUS.md) — 文档与里程碑完成度索引
 - [product-design.md](./product-design.md)
 - [Karpathy LLM Wiki Pattern](https://gist.githubusercontent.com/karpathy/442a6bf555914893e9891c11519de94f/raw/ac46de1ad27f92b28ac95459c782c07f6b8c964a/llm-wiki.md)
 - [Google knowledge-catalog](https://github.com/GoogleCloudPlatform/knowledge-catalog)

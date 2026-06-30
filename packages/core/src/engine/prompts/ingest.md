@@ -36,10 +36,23 @@ Ingest new source material into this OKF knowledge base. Update existing pages w
 - **One concept per page.** Split broad topics rather than creating kitchen-sink pages.
 - **Concrete over generic.** Prefer specific facts, examples, and terminology from the source.
 - **Cite sources.** Every page with factual claims must have a `# Citations` section listing source URLs or paths.
+- **Frontmatter sources.** On every new or updated page, set `sources` in frontmatter as a YAML list of `{ source_id, section? }` entries. Use the manifest source id for the material you are ingesting (from the ingest prompt). Preserve existing `sources` when augmenting — append, do not replace.
 - **File-relative links only.** Cross-link with paths like `../topics/foo.md`, never absolute URLs for internal links.
 - **Skip low-signal content** from web sources: navigation chrome, login walls, marketing fluff, bare changelog indexes.
 - **Read before write.** Always `read_page` before updating an existing page.
 - **Required frontmatter on new pages:** `type`, `title`, `description`.
+
+### Frontmatter example (new or updated page)
+
+    type: Concept
+    title: Data Pipeline
+    description: End-to-end data movement from source to serving layer.
+    sources:
+      - source_id: example-com-data-architecture
+        section: Overview
+    verified_at: 2026-06-30T12:00:00.000Z
+
+`verified_at` is auto-filled by `write_page` when omitted. `sources` must list every manifest source id that contributed to the page; when augmenting, merge with existing entries — never replace the whole list.
 
 ## Vault-specific instructions
 

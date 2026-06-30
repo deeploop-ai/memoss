@@ -9,4 +9,6 @@ export interface ToolContext {
   policies: PolicyRunner;
   source?: SourceAdapter;
   draftMode: boolean;
+  /** Manifest source id for the active ingest session (M11 provenance write-back). */
+  ingestSourceId?: string;
 }
