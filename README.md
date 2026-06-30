@@ -248,11 +248,11 @@ One enterprise, one personal. Same architecture. **The pattern is validated. The
 |-------|----------|-------|
 | **Phase 1a** | 0–4 months | CLI + core loop (ingest/query/lint), draft review, MCP, graph viewer |
 | **Phase 1b** | 4–6 months | Web crawl ingest, provenance, lint health score, examples |
-| **Phase 2a** | 6–12 months | Catalog bridge, enrich, sync, publish, data connectors |
-| **Phase 2b** | 12–18 months | Discover, Desktop app, hybrid search, team PR workflow |
+| **Phase 2a** | 0–8 weeks | Serial Read, provenance closure, E2E, image ingest |
+| **Phase 2b** | 8–20 weeks | Local Discover, hybrid search, publish bundle, retrieval eval |
 | **Phase 3** | 18+ months | Hosted platform, bundle marketplace, enterprise |
 
-Full details: [Product Design v0.2](docs/product-design.md) · [Phase 1 Plan](docs/phase-1-plan.md) · [Phase 1 Technical Design](docs/phase-1-technical-design.md) · [Extraction Skills Design](docs/extraction-skills-design.md) · [Serial Read Design](docs/serial-read-design.md) · [CLI Reference](docs/cli-reference.md) · [OKF Spec](docs/okf-spec.md)
+Full details: [Product Design v0.2](docs/product-design.md) · [Phase 1 Plan](docs/phase-1-plan.md) · [**Phase 2 Plan (personal/small teams)**](docs/phase-2-plan.md) · [Phase 1 Technical Design](docs/phase-1-technical-design.md) · [Extraction Skills Design](docs/extraction-skills-design.md) · [Serial Read Design](docs/serial-read-design.md) · [CLI Reference](docs/cli-reference.md) · [OKF Spec](docs/okf-spec.md)
 
 ---
 
