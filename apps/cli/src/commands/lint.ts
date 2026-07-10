@@ -113,7 +113,7 @@ export const lintCommand = defineCommand({
       process.exit(ExitCode.LINT_SCORE);
     }
 
-    if (/^\s*\*\*\*?\s*error/i.test(result.text) || /\berror:\s*\d+/i.test(result.text)) {
+    if ((result.report?.summary.errors ?? 0) > 0) {
       process.exit(ExitCode.LINT_ERRORS);
     }
   },

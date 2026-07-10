@@ -3,6 +3,7 @@ import { MemossError } from '../errors.js';
 import { checkSourceContent } from '../validation/content-heuristics.js';
 import {
   createValidateToolRegistry,
+  reportValidationSchema,
   type ValidationReport,
   type ValidationReportState,
 } from '../tools/validate-tools.js';
@@ -15,7 +16,6 @@ import {
   resolveRunnerModel,
   vaultExists,
 } from './runner-setup.js';
-import { summarizeAgentStep } from './step-summary.js';
 import type { AgentStepSummary, ValidateRunOptions, ValidateRunResult } from './types.js';
 
 const VALIDATE_MAX_STEPS = 8;
@@ -34,7 +34,10 @@ function findReportInSteps(steps: AgentStepSummary[]): ValidationReport | undefi
   for (const step of steps) {
     for (const call of step.toolCalls) {
       if (call.toolName === 'report_validation' && call.input) {
-        return call.input as ValidationReport;
+        const parsed = reportValidationSchema.safeParse(call.input);
+        if (parsed.success) {
+          return parsed.data;
+        }
       }
     }
   }
@@ -127,9 +130,7 @@ export async function runValidate(
     maxSteps: VALIDATE_MAX_STEPS,
     temperature: setup.config.agent.temperature,
     abortSignal: opts.abortSignal,
-    onStepFinish: (step) => {
-      opts.onStepFinish?.(summarizeAgentStep(step, 0));
-    },
+    onStepFinish: opts.onStepFinish,
   });
 
   const report =
@@ -153,9 +154,15 @@ export async function runValidate(
   }
 
   return {
-    approved: report.approved,
+    approved: report.approved && agentResult.status === 'complete',
     summary: report.summary,
-    issues: report.issues,
+    issues:
+      agentResult.status === 'complete'
+        ? report.issues
+        : [
+            ...report.issues,
+            `Validation agent did not complete successfully (status: ${agentResult.status}).`,
+          ],
     method: 'agent',
     status: agentResult.status,
     text: agentResult.text,

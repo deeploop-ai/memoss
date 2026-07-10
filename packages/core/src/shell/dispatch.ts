@@ -1,5 +1,6 @@
 import { FsKnowledgeStore } from '../adapters/fs-store.js';
 import { SimpleGitAdapter } from '../adapters/simple-git.js';
+import { approveDraftBranch, rejectDraftBranch } from '../git/draft-workflow.js';
 import { loadVaultConfig } from '../config/vault-config.js';
 import { runIngest } from '../engine/ingest-runner.js';
 import { runLint } from '../engine/lint-runner.js';
@@ -143,62 +144,49 @@ export async function executeShellTask(
     }
 
     case 'approve': {
-      const git = new SimpleGitAdapter(vaultRoot);
-      const branch = await git.getCurrentBranch();
-      if (!branch.startsWith('memoss/draft/')) {
+      try {
+        const merged = await approveDraftBranch(vaultRoot);
+        return {
+          result: {
+            task: 'approve',
+            success: true,
+            summary: `Merged ${merged} into main.`,
+          },
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
         return {
           result: {
             task: 'approve',
             success: false,
-            summary: `Not on a draft branch (current: ${branch}).`,
+            summary: message,
           },
         };
       }
-      const main = (await git.listLocalBranches()).includes('main')
-        ? 'main'
-        : 'master';
-      await git.checkout(main);
-      await git.merge(branch, { ffOnly: true });
-      await git.deleteBranch(branch);
-      return {
-        result: {
-          task: 'approve',
-          success: true,
-          summary: `Merged ${branch} into ${main}.`,
-        },
-      };
     }
 
     case 'reject': {
-      const git = new SimpleGitAdapter(vaultRoot);
-      const branch =
-        typeof params.branch === 'string'
-          ? params.branch
-          : await git.getCurrentBranch();
-      if (!branch.startsWith('memoss/draft/')) {
+      try {
+        const branch =
+          typeof params.branch === 'string' ? params.branch : undefined;
+        const discarded = await rejectDraftBranch(vaultRoot, branch);
+        return {
+          result: {
+            task: 'reject',
+            success: true,
+            summary: `Discarded draft branch ${discarded}.`,
+          },
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
         return {
           result: {
             task: 'reject',
             success: false,
-            summary: `Not a draft branch: ${branch}`,
+            summary: message,
           },
         };
       }
-      const main = (await git.listLocalBranches()).includes('main')
-        ? 'main'
-        : 'master';
-      const current = await git.getCurrentBranch();
-      if (current === branch) {
-        await git.checkout(main);
-      }
-      await git.deleteBranch(branch, true);
-      return {
-        result: {
-          task: 'reject',
-          success: true,
-          summary: `Discarded draft branch ${branch}.`,
-        },
-      };
     }
 
     case 'status': {

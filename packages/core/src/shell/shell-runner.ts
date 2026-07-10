@@ -6,7 +6,6 @@ import {
   resolveRunnerModel,
   vaultExists,
 } from '../engine/runner-setup.js';
-import { summarizeAgentStep } from '../engine/step-summary.js';
 import type { AgentStatus, RunnerBaseOptions } from '../engine/types.js';
 import {
   createShellToolRegistry,
@@ -61,9 +60,7 @@ export async function runShellAgentTurn(
     maxSteps: SHELL_MAX_STEPS,
     temperature: setup.config.agent.temperature,
     abortSignal: opts.abortSignal,
-    onStepFinish: (step) => {
-      opts.onStepFinish?.(summarizeAgentStep(step, 0));
-    },
+    onStepFinish: opts.onStepFinish,
   });
 
   return {

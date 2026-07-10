@@ -1,4 +1,3 @@
-import { spawn } from 'node:child_process';
 import {
   copyFileSync,
   existsSync,
@@ -16,6 +15,8 @@ import {
   isAllowedExtractAgentOutput,
 } from '../extraction/output-policy.js';
 import { activateSkill, findSkillByName } from '../skills/activate.js';
+import { isPathInsideRoot } from '../utils/path-safety.js';
+import { runSafeCommand } from '../utils/safe-shell.js';
 import type { ExtractToolContext } from './extract-context.js';
 
 const activateSkillSchema = z.object({
@@ -78,9 +79,9 @@ function resolveReadablePath(ctx: ExtractToolContext, inputPath: string): string
     : undefined;
 
   const allowed =
-    absolute.startsWith(vaultRoot) ||
-    absolute.startsWith(outputDir) ||
-    (skillBase && absolute.startsWith(skillBase));
+    isPathInsideRoot(vaultRoot, absolute) ||
+    isPathInsideRoot(outputDir, absolute) ||
+    (skillBase ? isPathInsideRoot(skillBase, absolute) : false);
 
   if (!allowed) {
     throw new MemossError('EXTRACT_ERROR', `Read not allowed: ${inputPath}`);
@@ -106,7 +107,7 @@ function resolveWritablePath(ctx: ExtractToolContext, inputPath: string): string
         return resolve(outputDir, inputPath);
       })();
 
-  if (!absolute.startsWith(outputDir)) {
+  if (!isPathInsideRoot(outputDir, absolute)) {
     throw new MemossError(
       'EXTRACT_ERROR',
       `Write not allowed outside ${ctx.outputDir}: ${inputPath}`,
@@ -129,53 +130,11 @@ function runShellCommand(
   cwd: string,
   timeoutMs: number,
 ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
-  return new Promise((resolvePromise, reject) => {
-    const child = spawn(command, {
-      cwd,
-      shell: true,
-      env: process.env,
-      windowsHide: true,
-    });
-
-    let stdout = '';
-    let stderr = '';
-    let timedOut = false;
-
-    const timer = setTimeout(() => {
-      timedOut = true;
-      child.kill('SIGTERM');
-    }, timeoutMs);
-
-    child.stdout.on('data', (chunk: Buffer) => {
-      stdout += chunk.toString('utf8');
-    });
-    child.stderr.on('data', (chunk: Buffer) => {
-      stderr += chunk.toString('utf8');
-    });
-
-    child.on('error', (error) => {
-      clearTimeout(timer);
-      reject(error);
-    });
-
-    child.on('close', (code) => {
-      clearTimeout(timer);
-      if (timedOut) {
-        reject(
-          new MemossError(
-            'EXTRACT_ERROR',
-            `Command timed out after ${timeoutMs}ms`,
-          ),
-        );
-        return;
-      }
-      resolvePromise({
-        stdout: truncate(stdout, MAX_BASH_OUTPUT),
-        stderr: truncate(stderr, MAX_BASH_OUTPUT),
-        exitCode: code ?? 1,
-      });
-    });
-  });
+  return runSafeCommand(command, cwd, timeoutMs).then((result) => ({
+    stdout: truncate(result.stdout, MAX_BASH_OUTPUT),
+    stderr: truncate(result.stderr, MAX_BASH_OUTPUT),
+    exitCode: result.exitCode,
+  }));
 }
 
 export function createActivateSkillTool(ctx: ExtractToolContext): Tool {

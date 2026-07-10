@@ -8,6 +8,7 @@ import { rejectCommand } from './commands/reject.js';
 import { statusCommand } from './commands/status.js';
 import { graphCommand } from './commands/graph.js';
 import { mcpCommand } from './commands/mcp.js';
+import { serveCommand } from './commands/serve.js';
 import { extractCommand } from './commands/extract.js';
 import { skillCommand } from './commands/skill.js';
 import { migrateCommand } from './commands/migrate.js';
@@ -44,6 +45,7 @@ export function shouldLaunchShell(rawArgs: string[]): boolean {
     'graph',
     'view',
     'mcp',
+    'serve',
     'extract',
     'skill',
     'migrate',
@@ -83,6 +85,7 @@ export const mainCommand = defineCommand({
     status: statusCommand,
     graph: graphCommand,
     view: graphCommand,
+    serve: serveCommand,
     mcp: mcpCommand,
     extract: extractCommand,
     skill: skillCommand,

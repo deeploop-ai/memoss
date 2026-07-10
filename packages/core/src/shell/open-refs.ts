@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { isPathInsideRoot } from '../utils/path-safety.js';
 
 const LINK_PATTERN = /\[([^\]]*)\]\(([^)]+)\)/g;
 const WIKI_LINK_PATTERN = /\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g;
@@ -31,7 +32,11 @@ export function resolveVaultPagePath(vaultRoot: string, link: string): string | 
     join(vaultRoot, normalized),
     join(vaultRoot, normalized.endsWith('.md') ? normalized : `${normalized}.md`),
   ];
+  const resolvedRoot = resolve(vaultRoot);
   for (const candidate of candidates) {
+    if (!isPathInsideRoot(resolvedRoot, candidate)) {
+      continue;
+    }
     if (existsSync(candidate)) {
       return candidate;
     }
@@ -78,7 +83,9 @@ export async function openObsidianPage(
     return false;
   }
 
-  const relative = path.slice(resolve(vaultRoot).length + 1).replace(/\\/g, '/');
+  const relative = path
+    .slice(resolve(vaultRoot).length + 1)
+    .replace(/\\/g, '/');
   const uri = `obsidian://open?vault=${encodeURIComponent(vaultRoot)}&file=${encodeURIComponent(relative.replace(/\.md$/, ''))}`;
 
   const command = process.platform === 'win32' ? 'cmd' : 'open';

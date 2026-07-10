@@ -33,6 +33,7 @@ export interface GitAdapter {
   diff(ref?: string): Promise<string>;
   log(limit?: number): Promise<GitCommit[]>;
   listLocalBranches(): Promise<string[]>;
+  hasUncommittedChanges(): Promise<boolean>;
 }
 
 export type SourceKind = 'file' | 'web' | 'github';

@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import fg from 'fast-glob';
 import type { KnowledgeStore } from '../adapters/types.js';
@@ -50,7 +50,8 @@ export async function searchKb(
     }
 
     const absolute = join(store.vaultRoot, path);
-    const lines = readFileSync(absolute, 'utf8').split(/\r?\n/);
+    const content = await readFile(absolute, 'utf8');
+    const lines = content.split(/\r?\n/);
     const snippets: SearchSnippet[] = [];
 
     for (let index = 0; index < lines.length; index++) {

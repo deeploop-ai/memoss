@@ -1,9 +1,9 @@
-import { generateText, streamText, stepCountIs, type ToolSet } from 'ai';
+import { generateText, streamText, stepCountIs, type StepResult, type ToolSet } from 'ai';
 import type { AgentLoopOptions, AgentResult, AgentStepSummary } from './types.js';
 import { summarizeAgentStep } from './step-summary.js';
 
 function summarizeStep<TOOLS extends ToolSet>(
-  step: Parameters<NonNullable<AgentLoopOptions<TOOLS>['onStepFinish']>>[0],
+  step: StepResult<TOOLS>,
   stepNumber: number,
 ): AgentStepSummary {
   return summarizeAgentStep(step, stepNumber);
@@ -26,7 +26,7 @@ export async function runAgentLoop<TOOLS extends ToolSet>(
       onStepFinish: (step) => {
         const summary = summarizeStep(step, steps.length + 1);
         steps.push(summary);
-        opts.onStepFinish?.(step);
+        opts.onStepFinish?.(summary);
       },
     });
 
@@ -43,12 +43,15 @@ export async function runAgentLoop<TOOLS extends ToolSet>(
       totalSteps: result.steps.length,
     };
   } catch (error) {
+    const aborted =
+      opts.abortSignal?.aborted ||
+      (error instanceof Error && error.name === 'AbortError');
     const message = error instanceof Error ? error.message : String(error);
     return {
       status: 'error',
-      text: `Agent error: ${message}`,
+      text: aborted ? `Agent aborted: ${message}` : `Agent error: ${message}`,
       steps,
-      finishReason: 'error',
+      finishReason: aborted ? 'other' : 'error',
       totalSteps: steps.length,
     };
   }

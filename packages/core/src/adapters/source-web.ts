@@ -1,4 +1,5 @@
 import { fetchUrl } from './fetch.js';
+import { MemossError } from '../errors.js';
 import type { SourceAdapter, SourceContent, SourceItem } from './types.js';
 
 export class WebSourceAdapter implements SourceAdapter {
@@ -14,7 +15,13 @@ export class WebSourceAdapter implements SourceAdapter {
   }
 
   async readItem(id: string): Promise<SourceContent> {
-    const result = await fetchUrl(id);
+    if (id !== this.uri) {
+      throw new MemossError(
+        'SOURCE_ERROR',
+        `Web source id must match adapter uri: expected ${this.uri}, got ${id}`,
+      );
+    }
+    const result = await fetchUrl(this.uri);
     return {
       id,
       title: result.title ?? id,

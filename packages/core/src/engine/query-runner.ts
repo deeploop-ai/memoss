@@ -14,7 +14,6 @@ import {
 } from './runner-setup.js';
 import type { QueryRunOptions, QueryRunResult } from './types.js';
 import { MemossError } from '../errors.js';
-import { summarizeAgentStep } from './step-summary.js';
 
 export async function runQuery(opts: QueryRunOptions): Promise<QueryRunResult> {
   if (!vaultExists(opts.vaultRoot)) {
@@ -58,11 +57,11 @@ export async function runQuery(opts: QueryRunOptions): Promise<QueryRunResult> {
     maxSteps: setup.config.agent.max_steps,
     temperature: setup.config.agent.temperature,
     abortSignal: opts.abortSignal,
-    onStepFinish: (step) => {
-      if (opts.onTextDelta && step.text) {
-        opts.onTextDelta(step.text);
+    onStepFinish: (summary) => {
+      if (opts.onTextDelta && summary.text) {
+        opts.onTextDelta(summary.text);
       }
-      opts.onStepFinish?.(summarizeAgentStep(step, 0));
+      opts.onStepFinish?.(summary);
     },
   });
 

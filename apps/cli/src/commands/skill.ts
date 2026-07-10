@@ -12,7 +12,7 @@ function runNpxSkills(args: string[]): Promise<number> {
   return new Promise((resolveExit, reject) => {
     const child = spawn('npx', ['skills', ...args], {
       stdio: 'inherit',
-      shell: true,
+      shell: false,
       env: process.env,
     });
     child.on('error', reject);

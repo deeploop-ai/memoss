@@ -15,7 +15,6 @@ import {
   vaultExists,
 } from './runner-setup.js';
 import type { IngestRunOptions, IngestRunResult, ValidateRunResult } from './types.js';
-import { summarizeAgentStep } from './step-summary.js';
 import { runValidate } from './validate-runner.js';
 import { runTuningPass } from './tuning-runner.js';
 
@@ -93,7 +92,7 @@ export async function runIngest(
       onStepFinish: opts.onStepFinish,
     });
 
-    if (!validation.approved) {
+    if (!validation.approved || validation.status !== 'complete') {
       return {
         status: 'rejected',
         text: formatValidationFailure(validation),
@@ -165,9 +164,7 @@ export async function runIngest(
     maxSteps: setup.config.agent.max_steps,
     temperature: setup.config.agent.temperature,
     abortSignal: opts.abortSignal,
-    onStepFinish: (step) => {
-      opts.onStepFinish?.(summarizeAgentStep(step, 0));
-    },
+    onStepFinish: opts.onStepFinish,
   });
 
   let diff: string | undefined;

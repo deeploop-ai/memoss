@@ -1,7 +1,6 @@
 import { MemossError } from '../errors.js';
 import type { SourceRef } from '../okf/types.js';
 import type { PoliciesConfig, PolicyAction } from './config.js';
-import type { PolicyWarning } from './types.js';
 
 /** Merge source refs by source_id when augmenting a page; append ingest auto-ref when provided. */
 export function mergeAugmentSources(
@@ -138,14 +137,5 @@ export class AugmentPolicy {
       };
     }
     return undefined;
-  }
-
-  /** @deprecated Use checkBodyNotShrunk returning PolicyViolation */
-  legacyShrinkWarning(oldBody: string, newBody: string): PolicyWarning | undefined {
-    const violation = this.checkBodyNotShrunk(oldBody, newBody);
-    if (!violation) {
-      return undefined;
-    }
-    return { code: violation.code, message: violation.message };
   }
 }

@@ -1,4 +1,4 @@
-import type { FinishReason, LanguageModel, StepResult, ToolSet } from 'ai';
+import type { FinishReason, LanguageModel, ToolSet } from 'ai';
 import type { ModelSpec } from '../config/vault-config.js';
 import type { SourceKind } from '../adapters/types.js';
 import type { ExtractKind, ExtractMeta, ExtractRoute } from '../skills/types.js';
@@ -30,7 +30,7 @@ export interface AgentLoopOptions<TOOLS extends ToolSet> {
   maxSteps: number;
   temperature: number;
   abortSignal?: AbortSignal;
-  onStepFinish?: (step: StepResult<TOOLS>) => void;
+  onStepFinish?: (step: AgentStepSummary) => void;
 }
 
 export interface RunnerBaseOptions {

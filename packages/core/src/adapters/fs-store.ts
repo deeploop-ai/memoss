@@ -1,33 +1,22 @@
 import { accessSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
-import { dirname, resolve, sep } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import fg from 'fast-glob';
 import { MemossError } from '../errors.js';
 import { parseOKF, serializeOKF } from '../okf/document.js';
 import { isReservedFilename } from '../okf/paths.js';
 import type { OKFDocument } from '../okf/types.js';
+import {
+  normalizeRelativePath,
+  resolveContainedPath,
+} from '../utils/path-safety.js';
 import type { KnowledgeStore } from './types.js';
 
 const LOG_FILE = 'log.md';
 const INDEX_FILE = 'index.md';
 const LOG_HEADER = '# Knowledge Base Activity Log';
 
-function normalizeRelativePath(relativePath: string): string {
-  return relativePath.replace(/\\/g, '/').replace(/^\.\/+/, '');
-}
-
 function resolveVaultPath(vaultRoot: string, relativePath: string): string {
-  const normalized = normalizeRelativePath(relativePath);
-  if (normalized.includes('..')) {
-    throw new MemossError('POLICY_VIOLATION', `Path traversal rejected: ${relativePath}`);
-  }
-
-  const root = resolve(vaultRoot);
-  const absolute = resolve(root, normalized);
-  if (absolute !== root && !absolute.startsWith(root + sep)) {
-    throw new MemossError('POLICY_VIOLATION', `Path escapes vault root: ${relativePath}`);
-  }
-
-  return absolute;
+  return resolveContainedPath(vaultRoot, relativePath);
 }
 
 function ensureParentDir(filePath: string): void {
@@ -109,6 +98,9 @@ export class FsKnowledgeStore implements KnowledgeStore {
 
   async listPages(dir = ''): Promise<string[]> {
     const normalizedDir = normalizeRelativePath(dir);
+    if (normalizedDir) {
+      resolveVaultPath(this.vaultRoot, normalizedDir);
+    }
     const pattern = normalizedDir ? `${normalizedDir}/**/*.md` : '**/*.md';
     const files = await fg(pattern, {
       cwd: this.vaultRoot,

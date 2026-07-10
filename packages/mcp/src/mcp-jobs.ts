@@ -1,5 +1,12 @@
 import { randomUUID } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { join } from 'node:path';
 import type { IngestRunResult, runIngestSchema } from '@memoss/core';
 import type { z } from 'zod';
@@ -19,12 +26,63 @@ export interface McpIngestJob {
   error?: string;
 }
 
+const MAX_CONCURRENT_PER_VAULT = 2;
+const MAX_STORED_JOBS = 50;
+const runningByVault = new Map<string, number>();
+
 function jobsDir(vaultRoot: string): string {
   return join(vaultRoot, '.memoss', 'mcp-jobs');
 }
 
 function jobPath(vaultRoot: string, id: string): string {
   return join(jobsDir(vaultRoot), `${id}.json`);
+}
+
+export function canStartMcpJob(vaultRoot: string): boolean {
+  return (runningByVault.get(vaultRoot) ?? 0) < MAX_CONCURRENT_PER_VAULT;
+}
+
+export function markMcpJobRunning(vaultRoot: string): void {
+  runningByVault.set(vaultRoot, (runningByVault.get(vaultRoot) ?? 0) + 1);
+}
+
+export function markMcpJobFinished(vaultRoot: string): void {
+  const next = (runningByVault.get(vaultRoot) ?? 1) - 1;
+  if (next <= 0) {
+    runningByVault.delete(vaultRoot);
+  } else {
+    runningByVault.set(vaultRoot, next);
+  }
+}
+
+export function purgeOldMcpJobs(vaultRoot: string, keep = MAX_STORED_JOBS): void {
+  const dir = jobsDir(vaultRoot);
+  if (!existsSync(dir)) {
+    return;
+  }
+
+  const files = readdirSync(dir)
+    .filter((name) => name.endsWith('.json'))
+    .map((name) => {
+      const path = join(dir, name);
+      let updatedAt = '';
+      try {
+        const job = JSON.parse(readFileSync(path, 'utf8')) as McpIngestJob;
+        updatedAt = job.updatedAt;
+      } catch {
+        updatedAt = '';
+      }
+      return { path, updatedAt };
+    })
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+
+  for (const entry of files.slice(keep)) {
+    try {
+      unlinkSync(entry.path);
+    } catch {
+      // Best-effort cleanup.
+    }
+  }
 }
 
 export function writeMcpJob(vaultRoot: string, job: McpIngestJob): void {
@@ -40,13 +98,18 @@ export function readMcpJob(
   if (!existsSync(path)) {
     return undefined;
   }
-  return JSON.parse(readFileSync(path, 'utf8')) as McpIngestJob;
+  try {
+    return JSON.parse(readFileSync(path, 'utf8')) as McpIngestJob;
+  } catch {
+    return undefined;
+  }
 }
 
 export function createMcpIngestJob(
   vaultRoot: string,
   input: McpIngestJobInput,
 ): McpIngestJob {
+  purgeOldMcpJobs(vaultRoot);
   const now = new Date().toISOString();
   const job: McpIngestJob = {
     id: randomUUID(),

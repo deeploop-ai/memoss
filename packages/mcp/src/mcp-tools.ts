@@ -22,7 +22,10 @@ import {
   resolveMcpToolNames,
 } from './capabilities.js';
 import {
+  canStartMcpJob,
   createMcpIngestJob,
+  markMcpJobFinished,
+  markMcpJobRunning,
   readMcpJob,
   updateMcpJob,
 } from './mcp-jobs.js';
@@ -101,6 +104,7 @@ function startAsyncIngest(
   message: string;
 } {
   const job = createMcpIngestJob(vaultRoot, args);
+  markMcpJobRunning(vaultRoot);
   void (async () => {
     updateMcpJob(vaultRoot, job.id, { status: 'running' });
     try {
@@ -111,6 +115,8 @@ function startAsyncIngest(
         status: 'failed',
         error: error instanceof Error ? error.message : String(error),
       });
+    } finally {
+      markMcpJobFinished(vaultRoot);
     }
   })();
 
@@ -120,6 +126,17 @@ function startAsyncIngest(
     message:
       'Ingest started in background. Poll run_ingest_status with jobId until complete or failed.',
   };
+}
+
+async function executeRunnerTool(
+  handler: () => Promise<unknown>,
+): Promise<{ content: Array<{ type: 'text'; text: string }>; isError?: true }> {
+  try {
+    return formatToolResult(await handler());
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return formatToolError(message);
+  }
 }
 
 async function executeRegistryTool(
@@ -182,7 +199,7 @@ export function registerMemossTools(
         description: RUN_INGEST_TOOL_DESCRIPTION,
         inputSchema: runIngestSchema,
       },
-      async (args) => formatToolResult(await handlers.runIngest(args)),
+      async (args) => executeRunnerTool(() => handlers.runIngest(args)),
     );
   }
 
@@ -193,7 +210,7 @@ export function registerMemossTools(
         description: 'Poll status of an async run_ingest job',
         inputSchema: runIngestStatusSchema,
       },
-      async (args) => formatToolResult(await handlers.runIngestStatus(args)),
+      async (args) => executeRunnerTool(() => handlers.runIngestStatus(args)),
     );
   }
 
@@ -204,7 +221,7 @@ export function registerMemossTools(
         description: RUN_EXTRACT_TOOL_DESCRIPTION,
         inputSchema: runExtractSchema,
       },
-      async (args) => formatToolResult(await handlers.runExtract(args)),
+      async (args) => executeRunnerTool(() => handlers.runExtract(args)),
     );
   }
 
@@ -215,7 +232,7 @@ export function registerMemossTools(
         description: 'Run the query agent',
         inputSchema: runQuerySchema,
       },
-      async (args) => formatToolResult(await handlers.runQuery(args)),
+      async (args) => executeRunnerTool(() => handlers.runQuery(args)),
     );
   }
 
@@ -226,7 +243,7 @@ export function registerMemossTools(
         description: 'Run the lint agent',
         inputSchema: runLintSchema,
       },
-      async (args) => formatToolResult(await handlers.runLint(args)),
+      async (args) => executeRunnerTool(() => handlers.runLint(args)),
     );
   }
 }
@@ -258,6 +275,11 @@ export function createMemossMcpServer(
     {
       runIngest: async (args) => {
         if (args.async !== false) {
+          if (!canStartMcpJob(vaultRoot)) {
+            throw new Error(
+              'Too many concurrent ingest jobs for this vault. Poll run_ingest_status or retry later.',
+            );
+          }
           return startAsyncIngest(vaultRoot, args);
         }
         return runIngest(createIngestRunOptions(vaultRoot, args));
@@ -265,7 +287,11 @@ export function createMemossMcpServer(
       runIngestStatus: async (args) => {
         const job = readMcpJob(vaultRoot, args.jobId);
         if (!job) {
-          throw new Error(`Ingest job not found: ${args.jobId}`);
+          return {
+            jobId: args.jobId,
+            status: 'failed' as const,
+            error: `Ingest job not found: ${args.jobId}`,
+          };
         }
         if (job.status === 'complete') {
           return {

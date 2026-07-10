@@ -39,7 +39,6 @@ import type { ExtractToolContext } from '../tools/extract-context.js';
 import { buildSystemPrompt, createPromptContext } from './context.js';
 import { runAgentLoop } from './orchestrator.js';
 import { resolveRunnerModel, vaultExists } from './runner-setup.js';
-import { summarizeAgentStep } from './step-summary.js';
 import type { ExtractRunOptions, ExtractRunResult } from './types.js';
 import type { SourceKind } from '../adapters/types.js';
 
@@ -551,9 +550,7 @@ export async function runExtract(
       maxSteps: config.extraction.max_steps,
       temperature: config.agent.temperature,
       abortSignal: opts.abortSignal,
-      onStepFinish: (step) => {
-        opts.onStepFinish?.(summarizeAgentStep(step, 0));
-      },
+      onStepFinish: opts.onStepFinish,
     });
   } catch (error) {
     if (canFallback(extractKind)) {
@@ -701,6 +698,13 @@ export async function resolveIngestSource(
       extracted: false,
       originalSource: opts.source,
     };
+  }
+
+  if (result.status !== 'complete' || !result.outputPath) {
+    throw new MemossError(
+      'EXTRACT_ERROR',
+      `Extract did not complete successfully (status: ${result.status}). Ingest aborted.`,
+    );
   }
 
   return {

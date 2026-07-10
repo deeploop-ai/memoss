@@ -20,14 +20,14 @@ export function findFastPathScript(skillBaseDir: string): string | undefined {
   return undefined;
 }
 
-function commandForScript(scriptPath: string): string {
+function spawnArgsForScript(scriptPath: string): { file: string; args: string[] } {
   if (scriptPath.endsWith('.py')) {
-    return `python "${scriptPath}"`;
+    return { file: 'python', args: [scriptPath] };
   }
   if (scriptPath.endsWith('.mjs') || scriptPath.endsWith('.js')) {
-    return `node "${scriptPath}"`;
+    return { file: 'node', args: [scriptPath] };
   }
-  return `bash "${scriptPath}"`;
+  return { file: 'bash', args: [scriptPath] };
 }
 
 export async function runFastPathExtract(input: {
@@ -43,10 +43,12 @@ export async function runFastPathExtract(input: {
     output_path: input.outputPath,
   });
 
+  const { file, args } = spawnArgsForScript(input.scriptPath);
+
   await new Promise<void>((resolvePromise, reject) => {
-    const child = spawn(commandForScript(input.scriptPath), {
+    const child = spawn(file, args, {
       cwd: input.skillBaseDir,
-      shell: true,
+      shell: false,
       env: {
         ...process.env,
         SOURCE_URI: input.sourceUri,

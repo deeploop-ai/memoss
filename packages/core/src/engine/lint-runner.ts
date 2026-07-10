@@ -17,7 +17,6 @@ import {
   vaultExists,
 } from './runner-setup.js';
 import type { LintRunOptions, LintRunResult } from './types.js';
-import { summarizeAgentStep } from './step-summary.js';
 import { runVaultLintChecks } from '../lint/vault-lint.js';
 import { buildLintReport, writeLintReport, type LintReport } from '../lint/report.js';
 
@@ -100,9 +99,7 @@ export async function runLint(opts: LintRunOptions): Promise<LintRunResult> {
     maxSteps: setup.config.agent.max_steps,
     temperature: setup.config.agent.temperature,
     abortSignal: opts.abortSignal,
-    onStepFinish: (step) => {
-      opts.onStepFinish?.(summarizeAgentStep(step, 0));
-    },
+    onStepFinish: opts.onStepFinish,
   });
 
   report = buildLintReport({

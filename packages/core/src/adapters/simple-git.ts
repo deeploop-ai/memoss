@@ -106,4 +106,10 @@ export class SimpleGitAdapter implements GitAdapter {
     const result = await git.branchLocal();
     return result.all;
   }
+
+  async hasUncommittedChanges(): Promise<boolean> {
+    const git = await this.requireRepo();
+    const status = await git.status();
+    return status.files.length > 0;
+  }
 }

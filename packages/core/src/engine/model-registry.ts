@@ -36,7 +36,7 @@ export function resolveModel(spec: ModelSpec): LanguageModel {
     default: {
       const exhaustive: never = spec.provider;
       throw new MemossError(
-        'MISSING_API_KEY',
+        'INVALID_ARGUMENT',
         `Unsupported provider: ${exhaustive}`,
       );
     }

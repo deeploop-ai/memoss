@@ -31,7 +31,7 @@ export const appendLogSchema = z.object({
 });
 
 export const searchKbSchema = z.object({
-  query: z.string().describe('Grep-style search query'),
+  query: z.string().describe('Case-insensitive substring search query'),
   maxResults: z.number().int().positive().optional().describe('Maximum results to return (default 50)'),
 });
 

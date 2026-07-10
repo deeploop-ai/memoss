@@ -175,4 +175,10 @@ export {
   type ErrorCode,
 } from './errors.js';
 
+export {
+  approveDraftBranch,
+  isDraftBranch,
+  rejectDraftBranch,
+  resolveMainBranch,
+} from './git/draft-workflow.js';
 export { CORE_VERSION } from './version.js';

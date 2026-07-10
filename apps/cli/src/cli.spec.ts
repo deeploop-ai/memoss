@@ -5,6 +5,8 @@ import { isInteractiveTerminal, isSupportedNodeVersion } from './tui/terminal.js
 describe('shouldLaunchShell', () => {
   it('skips shell for subcommands', () => {
     expect(shouldLaunchShell(['status'])).toBe(false);
+    expect(shouldLaunchShell(['serve'])).toBe(false);
+    expect(shouldLaunchShell(['mcp', 'serve'])).toBe(false);
     expect(shouldLaunchShell(['ingest', 'https://example.com'])).toBe(false);
     expect(shouldLaunchShell(['pack', 'personal'])).toBe(false);
   });

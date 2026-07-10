@@ -8,7 +8,6 @@ import {
   resolveRunnerModel,
   vaultExists,
 } from './runner-setup.js';
-import { summarizeAgentStep } from './step-summary.js';
 import type { AgentStatus, RunnerBaseOptions } from './types.js';
 import {
   createTuningToolRegistry,
@@ -80,9 +79,7 @@ export async function runTuningPass(
     maxSteps: TUNING_MAX_STEPS,
     temperature: setup.config.agent.temperature,
     abortSignal: opts.abortSignal,
-    onStepFinish: (step) => {
-      opts.onStepFinish?.(summarizeAgentStep(step, 0));
-    },
+    onStepFinish: opts.onStepFinish,
   });
 
   if (!state.report) {

@@ -6,6 +6,8 @@ import { MemossError } from '../errors.js';
 const USER_AGENT =
   'memoss/0.1 (+https://github.com/deeploop-ai/memoss)';
 const MAX_MARKDOWN_BYTES = 40 * 1024;
+const MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
+const FETCH_TIMEOUT_MS = 30_000;
 
 export interface FetchResult {
   url: string;
@@ -34,6 +36,41 @@ function truncateUtf8(text: string, maxBytes: number): string {
     return text;
   }
   return `${encoded.subarray(0, maxBytes).toString('utf8')}\n\n[...truncated...]`;
+}
+
+async function readTextWithLimit(
+  response: Response,
+  maxBytes: number,
+): Promise<string> {
+  const reader = response.body?.getReader();
+  if (!reader) {
+    return truncateUtf8(await response.text(), maxBytes);
+  }
+
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  let truncated = false;
+  let streamDone = false;
+
+  while (!streamDone) {
+    const { done, value } = await reader.read();
+    if (done) {
+      streamDone = true;
+      break;
+    }
+    total += value.byteLength;
+    if (total > maxBytes) {
+      const overflow = total - maxBytes;
+      chunks.push(value.subarray(0, value.byteLength - overflow));
+      truncated = true;
+      await reader.cancel();
+      break;
+    }
+    chunks.push(value);
+  }
+
+  const text = Buffer.concat(chunks).toString('utf8');
+  return truncated ? truncateUtf8(text, maxBytes) : text;
 }
 
 function extractLinks(html: string, baseUrl: string): string[] {
@@ -86,6 +123,7 @@ export async function fetchUrl(url: string, init?: RequestInit): Promise<FetchRe
       ...init?.headers,
     },
     redirect: 'follow',
+    signal: init?.signal ?? AbortSignal.timeout(FETCH_TIMEOUT_MS),
   });
 
   if (!response.ok) {
@@ -96,11 +134,16 @@ export async function fetchUrl(url: string, init?: RequestInit): Promise<FetchRe
   }
 
   const finalUrl = response.url || parsed.toString();
+  assertHttpUrl(finalUrl);
+
   const contentType = response.headers.get('content-type') ?? '';
   const lowerType = contentType.toLowerCase();
 
   if (lowerType.includes('text/markdown') || finalUrl.endsWith('.md')) {
-    const text = truncateUtf8(await response.text(), MAX_MARKDOWN_BYTES);
+    const text = truncateUtf8(
+      await readTextWithLimit(response, MAX_RESPONSE_BYTES),
+      MAX_MARKDOWN_BYTES,
+    );
     return {
       url: finalUrl,
       mime: 'text/markdown',
@@ -110,7 +153,10 @@ export async function fetchUrl(url: string, init?: RequestInit): Promise<FetchRe
   }
 
   if (lowerType.includes('text/plain')) {
-    const text = truncateUtf8(await response.text(), MAX_MARKDOWN_BYTES);
+    const text = truncateUtf8(
+      await readTextWithLimit(response, MAX_RESPONSE_BYTES),
+      MAX_MARKDOWN_BYTES,
+    );
     return {
       url: finalUrl,
       mime: 'text/plain',
@@ -126,7 +172,7 @@ export async function fetchUrl(url: string, init?: RequestInit): Promise<FetchRe
     );
   }
 
-  const html = await response.text();
+  const html = await readTextWithLimit(response, MAX_RESPONSE_BYTES);
   const links = extractLinks(html, finalUrl);
   const { title, text } = htmlToMarkdown(html);
 
