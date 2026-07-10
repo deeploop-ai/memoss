@@ -27,6 +27,13 @@ import {
 import type { SourceRef } from '../okf/types.js';
 import { mergeFrontmatter, normalizeToolPath, toolResult } from './utils.js';
 
+function indexRelativePath(dir?: string): string {
+  const normalized = dir ? normalizeToolPath(dir) : '';
+  return normalized ? `${normalized}/index.md` : 'index.md';
+}
+
+const LOG_PATH = 'log.md';
+
 export function createReadPageTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Read an OKF page from the vault.',
@@ -151,6 +158,7 @@ export function createDeletePageTool(ctx: ToolContext) {
     inputSchema: pathSchema,
     execute: async ({ path }) => {
       const normalized = normalizeToolPath(path);
+      ctx.policies.augment.assertReadFirst(normalized);
       await ctx.store.deletePage(normalized);
       return { path: normalized, deleted: true };
     },
@@ -161,10 +169,14 @@ export function createReadIndexTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Read an index.md file from the vault.',
     inputSchema: readIndexSchema,
-    execute: async ({ dir }) => ({
-      dir: dir ?? '',
-      content: await ctx.store.readIndex(dir ? normalizeToolPath(dir) : undefined),
-    }),
+    execute: async ({ dir }) => {
+      const indexPath = indexRelativePath(dir);
+      ctx.policies.augment.markRead(indexPath);
+      return {
+        dir: dir ?? '',
+        content: await ctx.store.readIndex(dir ? normalizeToolPath(dir) : undefined),
+      };
+    },
   });
 }
 
@@ -174,6 +186,7 @@ export function createWriteIndexTool(ctx: ToolContext) {
     inputSchema: writeIndexSchema,
     execute: async ({ dir, content }) => {
       const normalized = normalizeToolPath(dir);
+      ctx.policies.augment.assertReadFirst(indexRelativePath(dir));
       await ctx.store.writeIndex(normalized, content);
       return { dir: normalized, written: true };
     },
@@ -184,7 +197,10 @@ export function createReadLogTool(ctx: ToolContext) {
   return defineTool(ctx, {
     description: 'Read the vault activity log.',
     inputSchema: emptySchema,
-    execute: async () => ({ content: await ctx.store.readLog() }),
+    execute: async () => {
+      ctx.policies.augment.markRead(LOG_PATH);
+      return { content: await ctx.store.readLog() };
+    },
   });
 }
 
@@ -193,6 +209,7 @@ export function createAppendLogTool(ctx: ToolContext) {
     description: 'Append a line to the vault activity log.',
     inputSchema: appendLogSchema,
     execute: async ({ line, date }) => {
+      ctx.policies.augment.assertReadFirst(LOG_PATH);
       await ctx.store.appendLog(line, date);
       return { appended: true };
     },

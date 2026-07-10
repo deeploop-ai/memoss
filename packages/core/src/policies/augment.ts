@@ -68,7 +68,7 @@ export class AugmentPolicy {
     if (!this.readPaths.has(normalized)) {
       throw new MemossError(
         'POLICY_VIOLATION',
-        `read_page must be called before write_page for ${normalized}`,
+        `Target path must be read before modification: ${normalized}`,
       );
     }
   }

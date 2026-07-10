@@ -5,7 +5,7 @@ import { parseOKF } from '../okf/document.js';
 import { isReservedFilename } from '../okf/paths.js';
 import type { Concept, GraphBundle, GraphEdge, GraphNode } from './types.js';
 
-const LINK_RE = /\]\(([^)\s]+\.md)(?:#[A-Za-z0-9_\-]*)?\)/g;
+const LINK_RE = /\]\(([^)\s]+\.md)(?:#[A-Za-z0-9_-]*)?\)/g;
 
 export const DEFAULT_TYPE_PALETTE: Record<string, string> = {
   'BigQuery Dataset': '#8b5cf6',

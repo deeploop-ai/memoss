@@ -24,7 +24,7 @@ function meaningfulText(text: string): string {
   return text
     .replace(/<[^>]+>/g, ' ')
     .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/[#>*_\[\]()!`~-]/g, ' ')
+    .replace(/[#>*_[\]()!`~-]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }

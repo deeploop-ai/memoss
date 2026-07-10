@@ -32,7 +32,7 @@ export function resolveSchemaPacksRoot(override?: string): string {
   }
 
   let dir = process.cwd();
-  while (true) {
+  for (;;) {
     const candidate = join(dir, 'schema-packs');
     if (existsDir(candidate)) {
       return candidate;

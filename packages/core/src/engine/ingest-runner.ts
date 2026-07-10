@@ -177,7 +177,7 @@ export async function runIngest(
     setup.config.provenance.enabled ||
     setup.config.policies.provenance.track_affects;
 
-  if (trackProvenance && agentResult.status === 'complete') {
+  if (trackProvenance && affects.length > 0) {
     registerIngestProvenance(opts.vaultRoot, {
       sourceUri: resolved.originalSource,
       rawContentHash,

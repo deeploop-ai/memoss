@@ -12,6 +12,22 @@ describe('fetchUrl', () => {
     await expect(fetchUrl('file:///etc/passwd')).rejects.toThrow(/Only http\/https/);
   });
 
+  it('rejects redirect targets that are not http/https', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        url: 'file:///etc/passwd',
+        headers: { get: () => 'text/plain' },
+        text: async () => 'secret',
+      }),
+    );
+
+    await expect(fetchUrl('https://example.com/redirect')).rejects.toThrow(
+      /Only http\/https/,
+    );
+  });
+
   it('returns markdown for text/markdown responses', async () => {
     vi.stubGlobal(
       'fetch',

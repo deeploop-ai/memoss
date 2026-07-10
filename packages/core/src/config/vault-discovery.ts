@@ -42,7 +42,7 @@ export function discoverVaultPath(options: DiscoverVaultOptions = {}): string {
 /** Walk from `startDir` up to the filesystem root looking for a vault. */
 export function findVaultInAncestors(startDir: string): string | undefined {
   let dir = resolve(startDir);
-  while (true) {
+  for (;;) {
     if (isVaultRoot(dir)) {
       return dir;
     }

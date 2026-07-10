@@ -6,7 +6,8 @@ import { FsKnowledgeStore } from '../adapters/fs-store.js';
 import { SimpleGitAdapter } from '../adapters/simple-git.js';
 import { loadVaultConfig } from '../config/vault-config.js';
 import { PolicyRunner } from '../policies/runner.js';
-import { createWritePageTool } from './page-tools.js';
+import { MemossError } from '../errors.js';
+import { createWritePageTool, createDeletePageTool, createWriteIndexTool, createAppendLogTool, createReadIndexTool, createReadLogTool } from './page-tools.js';
 import type { ToolContext } from './context.js';
 
 const tempDirs: string[] = [];
@@ -117,5 +118,71 @@ describe('createWritePageTool', () => {
       { source_id: 'example-com-update' },
     ]);
     expect(doc.frontmatter.verified_at).toBe('2026-06-01T00:00:00.000Z');
+  });
+});
+
+describe('page tool policies', () => {
+  it('requires read before delete_page', async () => {
+    const ctx = createContext();
+    await ctx.store.writePage('topics/remove-me.md', {
+      frontmatter: {
+        type: 'Concept',
+        title: 'Remove Me',
+        description: 'Temporary page.',
+      },
+      body: '# Remove Me\n',
+    });
+
+    const deletePage = createDeletePageTool(ctx);
+    await expect(
+      deletePage.execute!(
+        { path: 'topics/remove-me.md' },
+        { toolCallId: 'test', messages: [] },
+      ),
+    ).rejects.toThrow(MemossError);
+
+    ctx.policies.augment.markRead('topics/remove-me.md');
+    await deletePage.execute!(
+      { path: 'topics/remove-me.md' },
+      { toolCallId: 'test', messages: [] },
+    );
+    await expect(ctx.store.readPage('topics/remove-me.md')).rejects.toThrow();
+  });
+
+  it('requires read before write_index and append_log', async () => {
+    const ctx = createContext();
+    const writeIndex = createWriteIndexTool(ctx);
+    const appendLog = createAppendLogTool(ctx);
+    const readIndex = createReadIndexTool(ctx);
+    const readLog = createReadLogTool(ctx);
+
+    await expect(
+      writeIndex.execute!(
+        { dir: 'topics', content: '# Topics\n' },
+        { toolCallId: 'test', messages: [] },
+      ),
+    ).rejects.toThrow(MemossError);
+
+    await readIndex.execute!(
+      { dir: 'topics' },
+      { toolCallId: 'test', messages: [] },
+    );
+    await writeIndex.execute!(
+      { dir: 'topics', content: '# Topics\n' },
+      { toolCallId: 'test', messages: [] },
+    );
+
+    await expect(
+      appendLog.execute!(
+        { line: '- ingest complete' },
+        { toolCallId: 'test', messages: [] },
+      ),
+    ).rejects.toThrow(MemossError);
+
+    await readLog.execute!({}, { toolCallId: 'test', messages: [] });
+    await appendLog.execute!(
+      { line: '- ingest complete' },
+      { toolCallId: 'test', messages: [] },
+    );
   });
 });

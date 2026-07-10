@@ -2,6 +2,7 @@ import {
   TOOL_NAMES,
   createRunnerSetup,
   getToolInputSchema,
+  parseModelOverride,
   runIngest,
   runIngestSchema,
   runIngestStatusSchema,
@@ -79,6 +80,13 @@ function formatToolError(message: string): {
   };
 }
 
+function resolveRunnerModel(model?: string, baseUrl?: string) {
+  if (!model) {
+    return undefined;
+  }
+  return parseModelOverride(model, baseUrl);
+}
+
 function createIngestRunOptions(
   vaultRoot: string,
   args: z.infer<typeof runIngestSchema>,
@@ -92,6 +100,9 @@ function createIngestRunOptions(
     extract: args.noExtract === true ? false : (args.extract ?? 'auto'),
     noCache: args.noCache,
     skipValidate: args.skipValidate,
+    skipTuning: args.skipTuning,
+    emphasis: args.emphasis,
+    model: resolveRunnerModel(args.model, args.baseUrl),
   };
 }
 
@@ -321,17 +332,24 @@ export function createMemossMcpServer(
           kind: args.kind,
           skill: args.skill,
           noCache: args.noCache,
+          model: resolveRunnerModel(args.model, args.baseUrl),
         }),
       runQuery: (args) =>
         runQuery({
           vaultRoot,
           question: args.question,
           save: args.save,
+          suggestSave: args.suggestSave,
+          format: args.format,
+          model: resolveRunnerModel(args.model, args.baseUrl),
         }),
       runLint: (args) =>
         runLint({
           vaultRoot,
           fix: args.fix,
+          minScore: args.minScore,
+          reportPath: args.reportPath,
+          model: resolveRunnerModel(args.model, args.baseUrl),
         }),
     },
     capabilities,

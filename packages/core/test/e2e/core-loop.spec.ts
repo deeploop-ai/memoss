@@ -124,6 +124,10 @@ describe('E2E core loop @e2e', () => {
               },
             },
             {
+              toolName: 'read_log',
+              input: {},
+            },
+            {
               toolName: 'append_log',
               input: {
                 line: `**Ingest**: [Data Architecture](${sourceUri}) — Created [data-pipeline](topics/data-pipeline.md).`,

@@ -83,6 +83,16 @@ export const runIngestSchema = z.object({
     .boolean()
     .optional()
     .describe('Skip pre-ingest content validation agent'),
+  skipTuning: z.boolean().optional().describe('Skip pre-ingest tuning pass'),
+  emphasis: z
+    .string()
+    .optional()
+    .describe('Steer ingest priorities; overrides tuning skip recommendations'),
+  model: z.string().optional().describe('Model override (provider/model)'),
+  baseUrl: z
+    .string()
+    .optional()
+    .describe('OpenAI-compatible base URL (with model openai/...)'),
   async: z
     .boolean()
     .optional()
@@ -104,13 +114,38 @@ export const runExtractSchema = z.object({
   kind: z.enum(['auto', 'file', 'web', 'github']).optional().describe('Source kind hint'),
   skill: z.string().optional().describe('Extraction skill name'),
   noCache: z.boolean().optional().describe('Bypass extract cache'),
+  model: z.string().optional().describe('Model override (provider/model)'),
+  baseUrl: z
+    .string()
+    .optional()
+    .describe('OpenAI-compatible base URL (with model openai/...)'),
 });
 
 export const runQuerySchema = z.object({
   question: z.string().describe('Natural-language question'),
   save: z.boolean().optional().describe('Save the answer as a Note page'),
+  suggestSave: z
+    .boolean()
+    .optional()
+    .describe('Suggest saving high-value answers without auto-writing'),
+  format: z
+    .enum(['default', 'comparison'])
+    .optional()
+    .describe('Answer format (default or comparison)'),
+  model: z.string().optional().describe('Model override (provider/model)'),
+  baseUrl: z
+    .string()
+    .optional()
+    .describe('OpenAI-compatible base URL (with model openai/...)'),
 });
 
 export const runLintSchema = z.object({
   fix: z.boolean().optional().describe('Propose fixes on a draft branch'),
+  minScore: z.number().optional().describe('Minimum health score to pass'),
+  reportPath: z.string().optional().describe('Write lint report JSON to this path'),
+  model: z.string().optional().describe('Model override (provider/model)'),
+  baseUrl: z
+    .string()
+    .optional()
+    .describe('OpenAI-compatible base URL (with model openai/...)'),
 });
